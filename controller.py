@@ -1,15 +1,23 @@
 from collections import defaultdict
-from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtWidgets import QMessageBox, QFileDialog
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QMessageBox
 from UI import Ui_Form
 from hw_downloader import Hw_downloader
 from threading import Thread
 import os
+import patoolib # for rar file
+import threading
+##TODO 時區轉換 +8 => +0
+##TODO 平行化下載與解壓縮
+
+
+
 FOLDER_PATH = "/Course/{}/Upload/Homework/"
 COURSE_FOLDERS = ['CvDl_2022_G', 'OpenCvDl_2022_Bs']
 
-def unzip():
-    pass
+def unzip(file_path : str, output_directory : str):
+    os.makedirs(output_directory,exist_ok=True)
+    patoolib.extract_archive(file_path, outdir=output_directory)
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -83,13 +91,17 @@ class MainWindow(QtWidgets.QMainWindow):
             lines = [f + '\n' for f in self.error_files]
             with open(file_name, 'w', encoding='big5') as f:
                 f.writelines(lines)
-            
+    
     def download_files(self):
         if self.submitted_files == None:
             return
         if self.downloader.ftp == None:
             self.show_not_connect_message()
             return
+
+        file_paths = []
+        
+        root_dir = "./{}/{}/".format(self.ui.course_selecter.currentText(), self.ui.hw_selecter.currentText())
         for s_id, datas in self.submitted_files.items():
             max_version = 0
             max_idx = 0
@@ -101,13 +113,32 @@ class MainWindow(QtWidgets.QMainWindow):
             data = datas[max_idx]
             file_name = data[1]
 
-            path = "{}/{}".format(self.ftp_target_path, file_name)
-            output_path = "./{}/{}/".format(self.ui.course_selecter.currentText(), self.ui.hw_selecter.currentText())
-            output_path = output_path + file_name
-            self.downloader.download_file(path, output_path)
+            ftp_path = "{}/{}".format(self.ftp_target_path, file_name)
+            output_path = os.path.join(root_dir, file_name)
+            file_paths.append(output_path)
+            self.downloader.download_file(ftp_path, output_path)
+
+
+        file_name = "{}_{}_download_error.csv".format(self.ui.course_selecter.currentText(), self.ui.hw_selecter.currentText())
+        
+
+        error_zip_files = []
         # Auto unzip
         if self.ui.auto_unzip_ckb.isChecked():
-            pass
+            for file in file_paths:
+                out_directory = os.path.basename(file)[:-4]
+                output_path = os.path.join(root_dir, out_directory)
+                try:
+                    unzip(file, output_path)
+                    os.remove(file)
+                # unzip error
+                except:
+                    error_zip_files.append(os.path.basename(file))
+            lines = [f + '\n' for f in error_zip_files]
+            with open(file_name, 'w', encoding='big5') as f:
+                f.writelines(lines)
+
+
 
     def show_not_connect_message(self):
         self.dlg.setWindowTitle("錯誤")

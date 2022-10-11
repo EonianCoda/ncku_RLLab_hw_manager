@@ -1,2 +1,5 @@
 __pycache__
 *.ipynb
+*.csv
+.tmp
+OpenCvDl_2022_Bs
