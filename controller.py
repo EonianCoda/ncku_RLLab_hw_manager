@@ -6,11 +6,9 @@ from hw_downloader import Hw_downloader
 from threading import Thread
 import os
 import patoolib # for rar file
-import threading
-##TODO 時區轉換 +8 => +0
-##TODO 平行化下載與解壓縮
+from datetime import timedelta
 
-
+##TODO 儲存帳號密碼
 
 FOLDER_PATH = "/Course/{}/Upload/Homework/"
 COURSE_FOLDERS = ['CvDl_2022_G', 'OpenCvDl_2022_Bs']
@@ -65,6 +63,8 @@ class MainWindow(QtWidgets.QMainWindow):
         contents = ["學號,姓名,最終版本,檔案名稱,最後更新時間,遲交\n"]
 
         delay_time = self.ui.delay_time_show.dateTime().toPyDateTime()
+        # Ftp server use + 0, and we use + 8
+        delay_time = delay_time - timedelta(hours=8)
         for s_id, datas in self.submitted_files.items():
             max_version = 0
             max_idx = 0
@@ -91,6 +91,9 @@ class MainWindow(QtWidgets.QMainWindow):
             lines = [f + '\n' for f in self.error_files]
             with open(file_name, 'w', encoding='big5') as f:
                 f.writelines(lines)
+
+        # Open Explorer
+        os.system('explorer.exe ".\\"')
     
     def download_files(self):
         if self.submitted_files == None:
