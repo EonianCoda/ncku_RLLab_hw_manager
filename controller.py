@@ -15,6 +15,7 @@ import pickle
 ##TODO 下載寫為非同步
 ##TODO 新增log
 ##TODO 讀取條
+##TODO 匯出後打開資料夾變為打開excel
 
 FOLDER_PATH = "/Course/{}/Upload/Homework/"
 COURSE_FOLDERS = ['CvDl_2022_G', 'OpenCvDl_2022_Bs']
