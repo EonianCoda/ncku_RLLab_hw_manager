@@ -19,71 +19,12 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QWidget" name="horizontalLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>225</x>
-     <y>15</y>
-     <width>391</width>
-     <height>109</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="LoginLayout">
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="font">
-         <font>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>使用者名稱</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="username"/>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_2">
-        <property name="font">
-         <font>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>密碼</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="password">
-        <property name="echoMode">
-         <enum>QLineEdit::Password</enum>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <widget class="QPushButton" name="login_btn">
-      <property name="text">
-       <string>登入</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
   <widget class="QWidget" name="horizontalLayoutWidget_2">
    <property name="geometry">
     <rect>
      <x>60</x>
      <y>150</y>
-     <width>736</width>
+     <width>775</width>
      <height>406</height>
     </rect>
    </property>
@@ -139,7 +80,7 @@
     <item>
      <layout class="QVBoxLayout" name="FunctionLayout">
       <item>
-       <layout class="QGridLayout" name="SelectLayout" columnstretch="0,0,0">
+       <layout class="QGridLayout" name="SelectLayout" columnstretch="0,0">
         <item row="0" column="1">
          <widget class="QLabel" name="hw_label">
           <property name="sizePolicy">
@@ -270,6 +211,17 @@
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <widget class="QLabel" name="available_files_label">
+            <property name="font">
+             <font>
+              <pointsize>11</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+              <underline>false</underline>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color:green;</string>
+            </property>
             <property name="text">
              <string>有效檔案 </string>
             </property>
@@ -277,6 +229,16 @@
           </item>
           <item>
            <widget class="QLabel" name="unavailable_files_label">
+            <property name="font">
+             <font>
+              <pointsize>11</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color:red</string>
+            </property>
             <property name="text">
              <string>無效檔案</string>
             </property>
@@ -284,6 +246,16 @@
           </item>
           <item>
            <widget class="QLabel" name="submitted_student_num_label">
+            <property name="font">
+             <font>
+              <pointsize>11</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color:blue</string>
+            </property>
             <property name="text">
              <string>繳交人數</string>
             </property>
@@ -296,7 +268,7 @@
           <item>
            <layout class="QVBoxLayout" name="DownloadLayout">
             <item>
-             <widget class="QPushButton" name="output_data_btn">
+             <widget class="QPushButton" name="output_submitted_info_btn">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -337,6 +309,76 @@
          </layout>
         </item>
        </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="horizontalLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>160</x>
+     <y>10</y>
+     <width>491</width>
+     <height>121</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="LoginLayout">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>使用者名稱</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="username"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_2">
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>密碼</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="password">
+        <property name="echoMode">
+         <enum>QLineEdit::Password</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QPushButton" name="login_btn">
+        <property name="text">
+         <string>登入</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="login_and_store_btn">
+        <property name="text">
+         <string>儲存密碼並登入</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>

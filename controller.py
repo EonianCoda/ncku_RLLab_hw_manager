@@ -7,11 +7,15 @@ from threading import Thread
 import os
 import patoolib # for rar file
 from datetime import timedelta
-
-##TODO 儲存帳號密碼
+import pickle
+##TODO 加入新的資料根目錄
+##TODO 顯示登入狀態
+##TODO 下載寫為非同步
+##TODO 新增log
 
 FOLDER_PATH = "/Course/{}/Upload/Homework/"
 COURSE_FOLDERS = ['CvDl_2022_G', 'OpenCvDl_2022_Bs']
+LOGIN_INFO = "login.key"
 
 def unzip(file_path : str, output_directory : str):
     os.makedirs(output_directory,exist_ok=True)
@@ -36,16 +40,65 @@ class MainWindow(QtWidgets.QMainWindow):
         # For testing
         self.hw_folders = {'CvDl_2022_G':['hw1_1'], 'OpenCvDl_2022_Bs':['hw1_1', 'hw_1_2']}
         self.ui.hw_selecter.addItems(['hw1_1', 'hw_1_2'])
-
+        
+        if os.path.isfile(LOGIN_INFO):
+            with open("login.key", 'rb') as f:
+                username, password = pickle.load(f)
+            self.ui.username.setText(username)
+            self.ui.password.setText(password)
         self.setup_control()
+
+    def check_login(self) -> bool:
+        """Check whether ftp object exists
+        """
+        if self.downloader.ftp == None:
+            self.show_not_connect_message()
+            return False
+        return True
+    
     def setup_control(self):
         self.ui.login_btn.clicked.connect(self.login_ftp)
         self.ui.set_search_path_btn.clicked.connect(self.set_search_path)
         self.ui.search_files_btn.clicked.connect(self.search_files)
         self.ui.download_hw_btn.clicked.connect(self.download_files)
-        self.ui.output_data_btn.clicked.connect(self.output_data)
+        self.ui.output_submitted_info_btn.clicked.connect(self.output_submitted_info)
         self.ui.set_delay_time.clicked.connect(self.set_delay_time)
+        self.ui.login_and_store_btn.clicked.connect(self.login_and_store)
     
+    def login_ftp(self):
+        # username or password is empty
+        if self.ui.username.text() == "" or self.ui.password.text() == "":
+            self.dlg.setWindowTitle("警告")
+            self.dlg.setText("帳號或密碼不得為空")
+            self.dlg.exec()
+            return False
+        success = self.downloader.connect(self.ui.username.text(), self.ui.password.text())
+        
+        # Fail login
+        if not success:
+            self.dlg.setWindowTitle("登入失敗")
+            self.dlg.setText("請重新登入")
+            self.dlg.exec()
+            return False
+
+        t = Thread(target=self.search_folders)
+        t.start()
+        self.dlg.setWindowTitle("登入成功")
+        self.dlg.setText("歡迎使用")
+        self.dlg.exec()
+        t.join()
+
+        return True
+    def login_and_store(self):
+        success = self.login_ftp()
+        # Store password
+        if success:
+            username = self.ui.username.text()
+            password = self.ui.password.text()
+            with open("login.key", 'wb') as f:
+                pickle.dump((username, password), f)
+
+
     def set_delay_time(self):
         date = self.ui.set_date.selectedDate()
         time = self.ui.set_time.time()
@@ -53,11 +106,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.delay_time_show.setTime(time)
 
         # print(self.ui.delay_time_show.dateTime().toPyDateTime())
-    def output_data(self):
-        if self.submitted_files == None:
-            return
-        if self.downloader.ftp == None:
-            self.show_not_connect_message()
+    def output_submitted_info(self):
+        if not self.check_login() or self.submitted_files == None:
             return
         
         contents = ["學號,姓名,最終版本,檔案名稱,最後更新時間,遲交\n"]
@@ -96,10 +146,7 @@ class MainWindow(QtWidgets.QMainWindow):
         os.system('explorer.exe ".\\"')
     
     def download_files(self):
-        if self.submitted_files == None:
-            return
-        if self.downloader.ftp == None:
-            self.show_not_connect_message()
+        if not self.check_login() or self.submitted_files == None:
             return
 
         file_paths = []
@@ -125,7 +172,7 @@ class MainWindow(QtWidgets.QMainWindow):
         file_name = "{}_{}_download_error.csv".format(self.ui.course_selecter.currentText(), self.ui.hw_selecter.currentText())
         
 
-        error_zip_files = []
+        error_zip_files = ['錯誤檔案名稱, 錯誤訊息']
         # Auto unzip
         if self.ui.auto_unzip_ckb.isChecked():
             for file in file_paths:
@@ -135,21 +182,18 @@ class MainWindow(QtWidgets.QMainWindow):
                     unzip(file, output_path)
                     os.remove(file)
                 # unzip error
-                except:
-                    error_zip_files.append(os.path.basename(file))
+                except Exception as e:
+                    error_zip_files.append("{},{}".format(os.path.basename(file), e.__str__().replace(",","，")))
             lines = [f + '\n' for f in error_zip_files]
             with open(file_name, 'w', encoding='big5') as f:
                 f.writelines(lines)
-
-
 
     def show_not_connect_message(self):
         self.dlg.setWindowTitle("錯誤")
         self.dlg.setText("請先登入後再執行此功能")
         self.dlg.exec()
     def search_files(self):
-        if self.downloader.ftp == None:
-            self.show_not_connect_message()
+        if not self.check_login():
             return
         path = self.ui.search_path_show.text()
         self.ftp_target_path = path
@@ -161,7 +205,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.unavailable_files_label.setText("無效檔案: {}".format(error_count))
         self.ui.submitted_student_num_label.setText("繳交人數: {}".format(len(self.submitted_files)))
 
-        self.ui.output_data_btn.setEnabled(True)
+        self.ui.output_submitted_info_btn.setEnabled(True)
         self.ui.download_hw_btn.setEnabled(True)
     def set_search_path(self):
         cur_course = self.ui.course_selecter.currentText()
@@ -169,22 +213,6 @@ class MainWindow(QtWidgets.QMainWindow):
         path = FOLDER_PATH.format(cur_course) + cur_hw
         self.ui.search_path_show.setText(path)
         self.ui.search_files_btn.setEnabled(True)
-
-    def login_ftp(self):
-        success = self.downloader.connect(self.ui.username.text(), self.ui.password.text())
-        
-        if not success:
-            self.dlg.setWindowTitle("登入失敗")
-            self.dlg.setText("請重新登入")
-            self.dlg.exec()
-            return
-
-        t = Thread(target=self.search_folders)
-        t.start()
-        self.dlg.setWindowTitle("登入成功")
-        self.dlg.setText("歡迎使用")
-        self.dlg.exec()
-        t.join()
 
     def change_hw_options(self, value : str):
         self.ui.hw_selecter.clear()
@@ -209,4 +237,3 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.downloader.ftp != None:
             self.downloader.ftp.quit()
             print("結束連線")
-        #return super().closeEvent(a0)

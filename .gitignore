@@ -3,3 +3,7 @@ __pycache__
 *.csv
 .tmp
 OpenCvDl_2022_Bs
+*.key
+*.rar
+*.zip
+*.jpg
