@@ -8,10 +8,13 @@ import os
 import patoolib # for rar file
 from datetime import timedelta
 import pickle
+
+##TODO Connect timeout check
 ##TODO 加入新的資料根目錄
 ##TODO 顯示登入狀態
 ##TODO 下載寫為非同步
 ##TODO 新增log
+##TODO 讀取條
 
 FOLDER_PATH = "/Course/{}/Upload/Homework/"
 COURSE_FOLDERS = ['CvDl_2022_G', 'OpenCvDl_2022_Bs']
