@@ -3,6 +3,8 @@ import re
 import os
 from collections import namedtuple, defaultdict
 import datetime
+from datetime import timedelta
+import logging
 MONTH_MAPPING = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep' ,'Oct', 'Nov' ,'Dec']
 TIME_MATCHING = re.compile(r'\d\d:\d\d ')
 
@@ -66,8 +68,8 @@ class Hw_downloader(object):
             hour = int(info[2].split(':')[0])
             min = int(info[2].split(':')[1])
             timestamp = datetime.datetime(2022, month, day, hour, min)
-
-            
+            # Ftp server use + 0, and we use + 8
+            timestamp = timestamp + timedelta(hours=8)
             if len(info) > 4:
                 match = TIME_MATCHING.search(f)
                 file_name = f[match.span(0)[1]:]
@@ -82,7 +84,7 @@ class Hw_downloader(object):
                 error_for_format += 1
                 error_files.append(file_name)
                 continue
-
+            
             info = file_name.split('_')
 
             version = info[-1].split('.')[0]
@@ -115,7 +117,8 @@ class Hw_downloader(object):
         # print(self.ftp.pwd())
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         f = open(output_path, "wb")
-        
+        if "F74096247" in path:
+            print(path)
         download_cmd = 'RETR %s' % (path)
         self.ftp.retrbinary(download_cmd, f.write)
         f.close()

@@ -6,16 +6,19 @@ from hw_downloader import Hw_downloader
 from threading import Thread
 import os
 import patoolib # for rar file
-from datetime import timedelta
+
 import pickle
 
 ##TODO Connect timeout check
+##TODO 名字編碼問題
+
 ##TODO 加入新的資料根目錄
 ##TODO 顯示登入狀態
 ##TODO 下載寫為非同步
 ##TODO 新增log
 ##TODO 讀取條
 ##TODO 匯出後打開資料夾變為打開excel
+
 
 FOLDER_PATH = "/Course/{}/Upload/Homework/"
 COURSE_FOLDERS = ['CvDl_2022_G', 'OpenCvDl_2022_Bs']
@@ -117,8 +120,7 @@ class MainWindow(QtWidgets.QMainWindow):
         contents = ["學號,姓名,最終版本,檔案名稱,最後更新時間,遲交\n"]
 
         delay_time = self.ui.delay_time_show.dateTime().toPyDateTime()
-        # Ftp server use + 0, and we use + 8
-        delay_time = delay_time - timedelta(hours=8)
+
         for s_id, datas in self.submitted_files.items():
             max_version = 0
             max_idx = 0
@@ -168,6 +170,9 @@ class MainWindow(QtWidgets.QMainWindow):
             file_name = data[1]
 
             ftp_path = "{}/{}".format(self.ftp_target_path, file_name)
+            # The name of files on Windows cannot contain question mark(?)
+            if '?' in file_name:
+                file_name = file_name.replace('?','X')
             output_path = os.path.join(root_dir, file_name)
             file_paths.append(output_path)
             self.downloader.download_file(ftp_path, output_path)
