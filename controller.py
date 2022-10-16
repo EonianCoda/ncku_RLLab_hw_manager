@@ -1,34 +1,195 @@
-from collections import defaultdict
-from PyQt5 import QtWidgets
+
+from os.path import isdir
+from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtCore import QThread, pyqtSignal
 from UI import Ui_Form
 from hw_downloader import Hw_downloader
-from threading import Thread
+from collections import defaultdict
 import os
 import patoolib # for rar file
-
 import pickle
-
-##TODO Connect timeout check
-##TODO 名字編碼問題
-
-##TODO 加入新的資料根目錄
-##TODO 顯示登入狀態
-##TODO 下載寫為非同步
-##TODO 新增log
-##TODO 讀取條
-##TODO 匯出後打開資料夾變為打開excel
-
+import ftplib
+from pathlib import Path
 
 FOLDER_PATH = "/Course/{}/Upload/Homework/"
 COURSE_FOLDERS = ['CvDl_2022_G', 'OpenCvDl_2022_Bs']
 LOGIN_INFO = "login.key"
+DOWNLOAD_FILE_ROOT = Path("./download")
 
+##################### For Debug #########################
+# if os.path.isdir(DOWNLOAD_FILE_ROOT):
+#     shutil.rmtree(DOWNLOAD_FILE_ROOT)
+
+##TODO 新增設置修課學號表
+##TODO 統整Error
+
+##TODO Reconnect期間的檔案仍要下載
+##TODO GIF圖檔失真
+##TODO 匯出後打開資料夾變為打開excel
+
+login_success_styleSheet = """
+QLabel
+{	
+	font: 75 20pt "微軟正黑體";
+	font-weight:bold;
+	color: green;
+}
+"""
 def unzip(file_path : str, output_directory : str):
-    os.makedirs(output_directory,exist_ok=True)
+    os.makedirs(output_directory, exist_ok=True)
+    output_directory = str(output_directory)
+    file_path = str(file_path)
     patoolib.extract_archive(file_path, outdir=output_directory)
 
 
+class LoadingProgress(QtWidgets.QDialog):
+    update_title_signal = pyqtSignal(str)
+    update_content_signal = pyqtSignal(str)
+    finished = pyqtSignal()
+    def __init__(self, parent):
+        super(LoadingProgress, self).__init__(parent)
+        # self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint ^ QtCore.Qt.WindowCloseButtonHint)
+        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+        self.setWindowTitle("訊息")
+        self.value = 0
+        vbox = QtWidgets.QVBoxLayout(self)
+        # Set gif movie
+        self.movie_label = QtWidgets.QLabel()
+        self.movie = QtGui.QMovie("./UI_imgs/loading.gif")
+        self.movie_label.setMovie(self.movie)
+        self.movie_label.setScaledContents(True)
+        self.movie.start()
+        self.progress_label = QtWidgets.QLabel()
+
+        vbox.addWidget(self.movie_label)
+        vbox.addWidget(self.progress_label)
+        
+        self.setLayout(vbox)
+        self.setStyleSheet("background-color:white;")
+
+        self.setup_signal()
+    def setup_signal(self):
+        self.finished.connect(self.close_progress)
+        self.update_title_signal.connect(self.update_title)
+        self.update_content_signal.connect(self.update_content)
+    def close_progress(self):
+        self.close()
+    def update_title(self, title:str):
+        self.setWindowTitle(title)
+    def update_content(self, content:str):
+        self.progress_label.setText(content)
+    # def initialize(self):
+    #     self.value = 0
+    # def label_update(self):
+    #     self.progress_label.setText(self.steps[self.value])
+    
+    # def update_progress(self) -> None:
+    #     self.value += 1
+    #     if self.value < len(self.steps):
+    #         self.label_update()
+    #     else:
+    #         self.close()
+
+
+class Download_files_thread(QThread):
+    def __init__(self, loading_bar:LoadingProgress,
+                        downloader : Hw_downloader,
+                        root_dir : str,
+                        ftp_target_path : str,
+                        submitted_files : dict,
+                        hw_mark : str,
+                        ):
+        super().__init__()
+        self.loading_bar = loading_bar
+
+        self.downloader = downloader
+        self.root_dir = root_dir
+        self.ftp_target_path = ftp_target_path
+        self.submitted_files = submitted_files
+        self.hw_mark = hw_mark
+
+    def run(self):
+        self.loading_bar.update_title_signal.emit("下載檔案中")
+
+        download_files_path = []
+        
+        download_error_lines = ['錯誤檔案名稱, 錯誤訊息\n']
+        reconnect_times = 0
+        remove_list = []
+        # Download Files
+        for idx, (s_id, datas) in enumerate(self.submitted_files.items()):
+            max_timestamp = datas[0][0]
+            max_idx = 0
+            for i, data in enumerate(datas[1:]):
+                if data[0] > max_timestamp:
+                    max_timestamp = data[0]
+                    max_idx = i
+            data = datas[max_idx]
+            file_name = data[1]
+
+            ftp_path = "{}/{}".format(self.ftp_target_path, file_name)
+            output_path = os.path.join(self.root_dir, file_name)
+            
+
+            self.loading_bar.update_content_signal.emit("正在下載({}/{}) {}".format(idx, len(self.submitted_files),file_name))
+            try:
+                self.downloader.download_file(ftp_path, output_path)
+                reconnect_times = 0
+                download_files_path.append(output_path)
+            # No such file
+            except ftplib.error_perm as e:
+                download_error_lines.append("{},{}\n".format(file_name, e.__str__().replace(",","，")))
+                remove_list.append(output_path)
+            except UnicodeEncodeError as e:
+                download_error_lines.append("{},{}\n".format(file_name, e.__str__().replace(",","，")))
+                remove_list.append(output_path)
+            # Server or Out Pc error
+            except ftplib.error_temp as e:
+                if reconnect_times == 1:
+                    print(e)
+                    raise SystemError("Some Fatal error")
+                reconnect_times += 1
+                self.downloader.reconnect()
+            except ConnectionAbortedError as e:
+                if reconnect_times == 1:
+                    print(e)
+                    raise SystemError("Some Fatal error")
+                reconnect_times += 1
+                self.downloader.reconnect()
+
+        with open(self.root_dir / ".." / "{}_download_error.csv".format(self.hw_mark), 'w', encoding='utf-8') as f:
+            f.write('\ufeff')
+            f.writelines(download_error_lines)
+
+        for f in remove_list:
+            os.remove(f)
+        # download_files_path = os.listdir(self.root_dir)
+        # download_files_path = [self.root_dir / f for f in download_files_path]
+        self.loading_bar.update_title_signal.emit("解壓縮檔案中")
+        error_zip_lines = ['錯誤檔案名稱, 錯誤訊息']
+        # # Unzip files
+        for idx, file in enumerate(download_files_path):
+            out_directory = os.path.basename(file)
+            if ".7z" in out_directory:
+                out_directory = out_directory[:-3]
+            else:
+                out_directory = out_directory[:-4]
+            output_path = self.root_dir / out_directory
+            
+            self.loading_bar.update_content_signal.emit("正在解壓縮({}/{}) {}".format(idx, len(download_files_path),os.path.basename(file)))
+            try:
+                unzip(file, output_path)
+                os.remove(file)
+            # unzip error
+            except Exception as e:
+                error_zip_lines.append("{},{}".format(os.path.basename(file), e.__str__().replace(",","，")))
+        lines = [f + '\n' for f in error_zip_lines]
+        with open(self.root_dir / ".." / "{}_unzip_error.csv".format(self.hw_mark), 'w', encoding='utf-8') as f:
+            f.write('\ufeff')
+            f.writelines(lines)
+
+        self.loading_bar.finished.emit()
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -54,7 +215,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.username.setText(username)
             self.ui.password.setText(password)
         self.setup_control()
-
+        self.loading_bar = LoadingProgress(self)
+        
+        self.download_thread = None
     def check_login(self) -> bool:
         """Check whether ftp object exists
         """
@@ -65,12 +228,14 @@ class MainWindow(QtWidgets.QMainWindow):
     
     def setup_control(self):
         self.ui.login_btn.clicked.connect(self.login_ftp)
-        self.ui.set_search_path_btn.clicked.connect(self.set_search_path)
         self.ui.search_files_btn.clicked.connect(self.search_files)
         self.ui.download_hw_btn.clicked.connect(self.download_files)
         self.ui.output_submitted_info_btn.clicked.connect(self.output_submitted_info)
         self.ui.set_delay_time.clicked.connect(self.set_delay_time)
         self.ui.login_and_store_btn.clicked.connect(self.login_and_store)
+
+        self.ui.hw_selecter.currentTextChanged.connect(self.set_search_path)
+        self.ui.course_selecter.currentTextChanged.connect(self.set_search_path)
     
     def login_ftp(self):
         # username or password is empty
@@ -88,12 +253,12 @@ class MainWindow(QtWidgets.QMainWindow):
             self.dlg.exec()
             return False
 
-        t = Thread(target=self.search_folders)
-        t.start()
+        self.search_folders()
         self.dlg.setWindowTitle("登入成功")
         self.dlg.setText("歡迎使用")
         self.dlg.exec()
-        t.join()
+        self.ui.login_status_label.setStyleSheet(login_success_styleSheet) 
+        self.ui.login_status_label.setText("登入狀態: 已登入")
 
         return True
     def login_and_store(self):
@@ -122,12 +287,11 @@ class MainWindow(QtWidgets.QMainWindow):
         delay_time = self.ui.delay_time_show.dateTime().toPyDateTime()
 
         for s_id, datas in self.submitted_files.items():
-            max_version = 0
+            max_timestamp = datas[0][0]
             max_idx = 0
-            for i, data in enumerate(datas):
-                v = data[-1]
-                if v > max_version:
-                    max_version = v
+            for i, data in enumerate(datas[1:]):
+                if data[0] > max_timestamp:
+                    max_timestamp = data[0]
                     max_idx = i
             data = datas[max_idx]
 
@@ -135,67 +299,106 @@ class MainWindow(QtWidgets.QMainWindow):
                 delay = 1
             else:
                 delay = 0
-            line = "{},{},{},{},{},{}\n".format(s_id, data[2], data[3], data[1], data[0].strftime("%Y/%m/%d %H:%m"), delay)
+            line = "{},{},{},{},{},{}\n".format(s_id.upper(), data[2], data[3], data[1], data[0].strftime("%Y/%m/%d %H:%m"), delay)
             contents.append(line)
         
-        file_name = "{}_{}.csv".format(self.ui.course_selecter.currentText(), self.ui.hw_selecter.currentText())
-        with open(file_name, 'w', encoding='big5') as f:
+        file_name = "{}.csv".format(self.cur_hw)
+        output_path = DOWNLOAD_FILE_ROOT / self.cur_course_name
+        os.makedirs(output_path, exist_ok=True)
+        with open(output_path / file_name, 'w', encoding='utf-8') as f:
+            f.write('\ufeff')
             f.writelines(contents)
 
         if len(self.error_files) != 0:
-            file_name = "{}_{}_error.csv".format(self.ui.course_selecter.currentText(), self.ui.hw_selecter.currentText())
+            file_name = "{}_submit_error.csv".format(self.cur_hw)
             lines = [f + '\n' for f in self.error_files]
-            with open(file_name, 'w', encoding='big5') as f:
+            with open(output_path / file_name, 'w', encoding='utf-8') as f:
+                f.write('\ufeff')
                 f.writelines(lines)
 
         # Open Explorer
-        os.system('explorer.exe ".\\"')
+        os.system('explorer.exe "{}"'.format(output_path))
     
     def download_files(self):
         if not self.check_login() or self.submitted_files == None:
             return
+        if self.download_thread != None and self.download_thread.isFinished() == False:
+            self.dlg.setWindowTitle("警告")
+            self.dlg.setText("請不要按兩次下載，下載還未完成")
+            self.dlg.exec()
+            return
 
-        file_paths = []
+        self.loading_bar.show()
+
+        root_dir = DOWNLOAD_FILE_ROOT / self.cur_course_name / self.cur_hw
+        os.makedirs(root_dir, exist_ok=True)
+        self.download_thread = Download_files_thread(loading_bar=self.loading_bar, 
+                                                    downloader=self.downloader,
+                                                    root_dir = root_dir,
+                                                    ftp_target_path = self.ftp_target_path,
+                                                    hw_mark=self.cur_hw,
+                                                    submitted_files = self.submitted_files)
+        self.download_thread.start()                                   
+
+        # self._file_paths = []
+        # root_dir = "./{}/{}/".format(self.cur_course_name, self.cur_hw)
+        # error_download_files = ['錯誤檔案名稱, 錯誤訊息']
+        # reconnect_times = 0
+        # for s_id, datas in self.submitted_files.items():
+        #     max_timestamp = datas[0][0]
+        #     max_idx = 0
+        #     for i, data in enumerate(datas[1:]):
+        #         if data[0] > max_timestamp:
+        #             max_timestamp = data
+        #             max_idx = i
+        #     data = datas[max_idx]
+        #     file_name = data[1]
+
+        #     ftp_path = "{}/{}".format(self.ftp_target_path, file_name)
+        #     output_path = os.path.join(root_dir, file_name)
+        #     self._file_paths.append(output_path)
+
+        #     try:
+        #         self.downloader.download_file(ftp_path, output_path)
+        #         reconnect_times = 0
+        #     # No such file
+        #     except ftplib.error_perm as e:
+        #         error_download_files.append("{},{}".format(file_name, e.__str__().replace(",","，")))
+        #     except UnicodeEncodeError as e:
+        #         error_download_files.append("{},{}".format(file_name, e.__str__().replace(",","，")))
+        #     except ftplib.error_temp as e:
+        #         if reconnect_times == 1:
+        #             print(e)
+        #             raise SystemError("Some Fatal error")
+        #         reconnect_times += 1
+        #         self.downloader.connect(self.ui.username.text(), self.ui.password.text())
+        #     except ConnectionAbortedError as e:
+        #         if reconnect_times == 1:
+        #             print(e)
+        #             raise SystemError("Some Fatal error")
+        #         reconnect_times += 1
+        #         self.downloader.connect(self.ui.username.text(), self.ui.password.text())
+    
+
+        # file_name = "{}_{}_download_error.csv".format(self.cur_course_name, self.cur_hw)
         
-        root_dir = "./{}/{}/".format(self.ui.course_selecter.currentText(), self.ui.hw_selecter.currentText())
-        for s_id, datas in self.submitted_files.items():
-            max_version = 0
-            max_idx = 0
-            for i, data in enumerate(datas):
-                v = data[-1]
-                if v > max_version:
-                    max_version = v
-                    max_idx = i
-            data = datas[max_idx]
-            file_name = data[1]
-
-            ftp_path = "{}/{}".format(self.ftp_target_path, file_name)
-            # The name of files on Windows cannot contain question mark(?)
-            if '?' in file_name:
-                file_name = file_name.replace('?','X')
-            output_path = os.path.join(root_dir, file_name)
-            file_paths.append(output_path)
-            self.downloader.download_file(ftp_path, output_path)
-
-
-        file_name = "{}_{}_download_error.csv".format(self.ui.course_selecter.currentText(), self.ui.hw_selecter.currentText())
-        
-
-        error_zip_files = ['錯誤檔案名稱, 錯誤訊息']
-        # Auto unzip
-        if self.ui.auto_unzip_ckb.isChecked():
-            for file in file_paths:
-                out_directory = os.path.basename(file)[:-4]
-                output_path = os.path.join(root_dir, out_directory)
-                try:
-                    unzip(file, output_path)
-                    os.remove(file)
-                # unzip error
-                except Exception as e:
-                    error_zip_files.append("{},{}".format(os.path.basename(file), e.__str__().replace(",","，")))
-            lines = [f + '\n' for f in error_zip_files]
-            with open(file_name, 'w', encoding='big5') as f:
-                f.writelines(lines)
+        # root_dir = "./{}/{}/".format(self.cur_course_name, self.cur_hw)
+        # self.loading_bar.update_signal.emit()
+        # error_zip_files = ['錯誤檔案名稱, 錯誤訊息']
+        # # Unzip files
+        # if self.ui.auto_unzip_ckb.isChecked():
+        #     for file in self._file_paths:
+        #         out_directory = os.path.basename(file)[:-4]
+        #         output_path = os.path.join(root_dir, out_directory)
+        #         try:
+        #             unzip(file, output_path)
+        #             os.remove(file)
+        #         # unzip error
+        #         except Exception as e:
+        #             error_zip_files.append("{},{}".format(os.path.basename(file), e.__str__().replace(",","，")))
+        #     lines = [f + '\n' for f in error_zip_files]
+        #     with open(file_name, 'w', encoding='big5') as f:
+        #         f.writelines(lines)
 
     def show_not_connect_message(self):
         self.dlg.setWindowTitle("錯誤")
@@ -217,9 +420,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.output_submitted_info_btn.setEnabled(True)
         self.ui.download_hw_btn.setEnabled(True)
     def set_search_path(self):
-        cur_course = self.ui.course_selecter.currentText()
-        cur_hw = self.ui.hw_selecter.currentText()
-        path = FOLDER_PATH.format(cur_course) + cur_hw
+        cur_course = self.cur_course_name
+        path = FOLDER_PATH.format(cur_course) + self.cur_hw
         self.ui.search_path_show.setText(path)
         self.ui.search_files_btn.setEnabled(True)
 
@@ -237,7 +439,7 @@ class MainWindow(QtWidgets.QMainWindow):
             folders = self.downloader.list_folders(path)
             self.hw_folders[folder] = folders
         # Set current select
-        cur_select = self.ui.course_selecter.currentText()
+        cur_select = self.cur_course_name
         self.ui.hw_selecter.clear()
         self.ui.hw_selecter.addItems(self.hw_folders[cur_select])
 
@@ -246,3 +448,10 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.downloader.ftp != None:
             self.downloader.ftp.quit()
             print("結束連線")
+
+    @property
+    def cur_course_name(self):
+        return self.ui.course_selecter.currentText()
+    @property
+    def cur_hw(self):
+        return self.ui.hw_selecter.currentText()
