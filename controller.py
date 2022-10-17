@@ -27,9 +27,12 @@ DOWNLOAD_FILE_ROOT = Path("./download")
 ##TODO 統整Error => 等待check
 ##TODO 刪除解壓縮失敗的資料夾 => 等待check
 ##TODO 遲交分數比例
+##TODO 新增下載log，避免多次重覆下載 
+##TODO 匯出後打開資料夾變為打開excel
+
 
 ##TODO GIF圖檔失真
-##TODO 匯出後打開資料夾變為打開excel
+
 
 login_success_styleSheet = """
 QLabel
