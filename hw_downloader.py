@@ -9,23 +9,34 @@ from datetime import timedelta
 
 
 class Hw_downloader(object):
-    def __init__(self):
+    def __init__(self, courses : list,
+                        course_stduent_list : list):
+        """This is a class for manage ftp
+        Attributes:
+            course: a list of string, which contains courses
+            course_student_list: a lish of path, which contains csv files
+        """
+
         self.ip = "140.116.154.1"
         self.port = 2121
         self.hw_file = namedtuple('Hw_file', ['timestamp', 'file_name', 'name','version'] ) # S_ID = student id
         self.ftp = None
 
 
-        with open("./opencvdl_students.csv", 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-        self.student_IDS = []
-        self.student_names = []
-        for line in lines[1:]:
-            line = line.replace("\u3000",'').replace("\n",'')
-            name = line.split(',')[0]
-            stdID = line.split(',')[1].lower()
-            self.student_names.append(name)
-            self.student_IDS.append(stdID)
+        if len(courses) != len(course_stduent_list) or courses == 0:
+            raise ValueError("Length of course or course_stdudent_list have some error!")
+
+        self.student_IDS = defaultdict(list)
+        self.student_names = defaultdict(list)
+        for course, csv_file in zip(courses, course_stduent_list):
+            with open(csv_file, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+            for line in lines[1:]:
+                line = line.replace("\u3000",'').replace("\n",'')
+                name = line.split(',')[0]
+                stdID = line.split(',')[1].lower()
+                self.student_names[course].append(name)
+                self.student_IDS[course].append(stdID)
 
     def connect(self, username:str, password:str):
         self.ftp = FTP()
@@ -59,7 +70,7 @@ class Hw_downloader(object):
             folders.append(file_name)
         return folders
     
-    def list_hw_files(self, path:str):
+    def list_hw_files(self, path:str, course:str):
         # Process files
         error_files = []
         version_matcher = re.compile(u'[vV]+[\d][\d]?[\s]*.')
@@ -103,7 +114,7 @@ class Hw_downloader(object):
                 version = int(match.group()[:-1].strip()[1:])
             # Find student ID
             student_id = None
-            for s_id in self.student_IDS:
+            for s_id in self.student_IDS[course]:
                 matcher = re.compile(s_id)
                 match = matcher.search(file_name)
                 if match != None:

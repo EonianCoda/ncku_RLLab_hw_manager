@@ -1,5 +1,6 @@
 
 from os.path import isdir
+import shutil
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtCore import QThread, pyqtSignal
@@ -11,9 +12,11 @@ import patoolib # for rar file
 import pickle
 import ftplib
 from pathlib import Path
-
+import subprocess
 FOLDER_PATH = "/Course/{}/Upload/Homework/"
 COURSE_FOLDERS = ['CvDl_2022_G', 'OpenCvDl_2022_Bs']
+COURSE_STUDENT_LIST = ['cvdl_students.csv', 'opencvdl_students.csv']
+
 LOGIN_INFO = "login.key"
 DOWNLOAD_FILE_ROOT = Path("./download")
 
@@ -21,10 +24,10 @@ DOWNLOAD_FILE_ROOT = Path("./download")
 # if os.path.isdir(DOWNLOAD_FILE_ROOT):
 #     shutil.rmtree(DOWNLOAD_FILE_ROOT)
 
-##TODO 新增設置修課學號表
-##TODO 統整Error
+##TODO 統整Error => 等待check
+##TODO 刪除解壓縮失敗的資料夾 => 等待check
+##TODO 遲交分數比例
 
-##TODO Reconnect期間的檔案仍要下載
 ##TODO GIF圖檔失真
 ##TODO 匯出後打開資料夾變為打開excel
 
@@ -114,7 +117,9 @@ class Download_files_thread(QThread):
 
         download_files_path = []
         
-        download_error_lines = ['錯誤檔案名稱, 錯誤訊息\n']
+
+        error_lines = ['錯誤檔案名稱, 錯誤類別, 錯誤訊息\n']
+        # download_error_lines = ['錯誤檔案名稱, 錯誤訊息\n']
         reconnect_times = 0
         remove_list = []
         # Download Files
@@ -139,10 +144,10 @@ class Download_files_thread(QThread):
                 download_files_path.append(output_path)
             # No such file
             except ftplib.error_perm as e:
-                download_error_lines.append("{},{}\n".format(file_name, e.__str__().replace(",","，")))
+                error_lines.append("{},{},{}\n".format(file_name, "download", e.__str__().replace(",","，")))
                 remove_list.append(output_path)
             except UnicodeEncodeError as e:
-                download_error_lines.append("{},{}\n".format(file_name, e.__str__().replace(",","，")))
+                error_lines.append("{},{},{}\n".format(file_name, "download", e.__str__().replace(",","，")))
                 remove_list.append(output_path)
             # Server or Out Pc error
             except ftplib.error_temp as e:
@@ -151,23 +156,26 @@ class Download_files_thread(QThread):
                     raise SystemError("Some Fatal error")
                 reconnect_times += 1
                 self.downloader.reconnect()
+                error_lines.append("{},{},{}\n".format(file_name, "download", "Exception ftplib.error_temp"))
             except ConnectionAbortedError as e:
                 if reconnect_times == 1:
                     print(e)
                     raise SystemError("Some Fatal error")
                 reconnect_times += 1
                 self.downloader.reconnect()
+                error_lines.append("{},{},{}\n".format(file_name, "download", "ConnectionAbortedError"))
+        # with open(self.root_dir / ".." / "{}_download_error.csv".format(self.hw_mark), 'w', encoding='utf-8') as f:
+        #     f.write('\ufeff')
+        #     f.writelines(download_error_lines)
 
-        with open(self.root_dir / ".." / "{}_download_error.csv".format(self.hw_mark), 'w', encoding='utf-8') as f:
-            f.write('\ufeff')
-            f.writelines(download_error_lines)
-
+        # Remove File which failed to download
         for f in remove_list:
             os.remove(f)
         # download_files_path = os.listdir(self.root_dir)
         # download_files_path = [self.root_dir / f for f in download_files_path]
+        remove_list = []
         self.loading_bar.update_title_signal.emit("解壓縮檔案中")
-        error_zip_lines = ['錯誤檔案名稱, 錯誤訊息']
+        #error_zip_lines = ['錯誤檔案名稱, 錯誤訊息']
         # # Unzip files
         for idx, file in enumerate(download_files_path):
             out_directory = os.path.basename(file)
@@ -183,11 +191,17 @@ class Download_files_thread(QThread):
                 os.remove(file)
             # unzip error
             except Exception as e:
-                error_zip_lines.append("{},{}".format(os.path.basename(file), e.__str__().replace(",","，")))
-        lines = [f + '\n' for f in error_zip_lines]
-        with open(self.root_dir / ".." / "{}_unzip_error.csv".format(self.hw_mark), 'w', encoding='utf-8') as f:
+                remove_list.append(output_path)
+                error_lines.append("{},{},{}\n".format(os.path.basename(file), "unzip", e.__str__().replace(",","，")))
+        # Remove directory which failed to unzip
+        for f in remove_list:
+            shutil.rmtree(f)
+
+        # Write Error messages
+        #lines = [f + '\n' for f in error_zip_lines]
+        with open(self.root_dir / ".." / "{}_download_and_unzip_error.csv".format(self.hw_mark), 'w', encoding='utf-8') as f:
             f.write('\ufeff')
-            f.writelines(lines)
+            f.writelines(error_lines)
 
         self.loading_bar.finished.emit()
 class MainWindow(QtWidgets.QMainWindow):
@@ -196,7 +210,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
-        self.downloader = Hw_downloader()
+        self.downloader = Hw_downloader(courses=COURSE_FOLDERS, course_stduent_list=COURSE_STUDENT_LIST)
 
         self.ui.course_selecter.addItems(COURSE_FOLDERS)
         self.ui.course_selecter.currentTextChanged.connect(self.change_hw_options)
@@ -302,10 +316,10 @@ class MainWindow(QtWidgets.QMainWindow):
             line = "{},{},{},{},{},{}\n".format(s_id.upper(), data[2], data[3], data[1], data[0].strftime("%Y/%m/%d %H:%m"), delay)
             contents.append(line)
         
-        file_name = "{}.csv".format(self.cur_hw)
+        csv_file_name = "{}.csv".format(self.cur_hw)
         output_path = DOWNLOAD_FILE_ROOT / self.cur_course_name
         os.makedirs(output_path, exist_ok=True)
-        with open(output_path / file_name, 'w', encoding='utf-8') as f:
+        with open(output_path / csv_file_name, 'w', encoding='utf-8') as f:
             f.write('\ufeff')
             f.writelines(contents)
 
@@ -317,6 +331,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 f.writelines(lines)
 
         # Open Explorer
+        #subprocess.run(['"C:\\Program Files\\Microsoft Office\\root\\Office16\\EXCEL.EXE"',(output_path / csv_file_name)])
+       
+        #subprocess.run('C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Excel.exe "{}"'.format(output_path / csv_file_name))
+        # os.system('C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Excel.exe "{}"'.format(csv_file_name))
         os.system('explorer.exe "{}"'.format(output_path))
     
     def download_files(self):
@@ -409,7 +427,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return
         path = self.ui.search_path_show.text()
         self.ftp_target_path = path
-        files, success_count, error_count, error_files = self.downloader.list_hw_files(path)
+        files, success_count, error_count, error_files = self.downloader.list_hw_files(path, self.cur_course_name)
 
         self.submitted_files = files
         self.error_files = error_files
