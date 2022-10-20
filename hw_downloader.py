@@ -99,11 +99,11 @@ class Hw_downloader(object):
 
             # The name of files on Windows cannot contain question mark(?)
             if '?' in file_name:
-                error_files.append(file_name)
+                error_files.append((file_name,"檔名中包含?"))
                 continue
             # Extension Error
-            if file_name[-4:].lower() != ".zip" and file_name[-4:].lower() != ".rar" and file_name[-3:].lower() != ".7z":
-                error_files.append(file_name)
+            if file_name[-4:].lower() != ".zip" and file_name[-4:].lower() != ".rar" and file_name[-4:].lower() != ".tar" and file_name[-3:].lower() != ".7z":
+                error_files.append((file_name,"副檔名錯誤"))
                 continue
 
             # Find Version
@@ -122,7 +122,7 @@ class Hw_downloader(object):
                     break
             # No student ID Error
             if student_id == None:
-                error_files.append(file_name)
+                error_files.append((file_name,"檔名中不存在學號or該學號不在此課程學生名單中"))
                 continue
 
             # Find Chinese Name

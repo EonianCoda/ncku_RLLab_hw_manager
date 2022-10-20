@@ -24,6 +24,7 @@ DOWNLOAD_FILE_ROOT = Path("./download")
 # if os.path.isdir(DOWNLOAD_FILE_ROOT):
 #     shutil.rmtree(DOWNLOAD_FILE_ROOT)
 ##TODO 遲交分數比例
+##TODO 繳交檔案錯誤訊息
 ##TODO 新增下載log，避免多次重覆下載 
 ##TODO 匯出後打開資料夾變為打開excel
 
@@ -325,7 +326,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if len(self.error_files) != 0:
             file_name = "{}_submit_error.csv".format(self.cur_hw)
-            lines = [f + '\n' for f in self.error_files]
+            lines = ["檔案名稱,錯誤訊息\n"]
+            for info in self.error_files:
+                f = info[0]
+                error_msg = info[1]
+                lines.append("{},{}\n".format(f, error_msg))
+            # lines = [f + '\n' for f in self.error_files]
             with open(output_path / file_name, 'w', encoding='utf-8') as f:
                 f.write('\ufeff')
                 f.writelines(lines)
