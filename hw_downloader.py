@@ -19,7 +19,7 @@ class Hw_downloader(object):
 
         self.ip = "140.116.154.1"
         self.port = 2121
-        self.hw_file = namedtuple('Hw_file', ['timestamp', 'file_name', 'name','version'] ) # S_ID = student id
+        self.hw_file = namedtuple('Hw_file', ['timestamp', 'file_name', 'name','version','size'] ) # S_ID = student id
         self.ftp = None
 
 
@@ -78,7 +78,7 @@ class Hw_downloader(object):
         good_files = defaultdict(list)
         success_count = 0
         # List files
-        files = [f for f in self.ftp.mlsd(path=path,facts=["Modify","Type"])]
+        files = [f for f in self.ftp.mlsd(path=path,facts=["Modify","Type","Size"])]
         for i, f in enumerate(files):
             if f[1]['type'] != "file":
                 continue
@@ -93,6 +93,10 @@ class Hw_downloader(object):
             timestamp = datetime.datetime(year, month, day, hour, min)
             # Ftp server use + 0, and we use + 8
             timestamp = timestamp + timedelta(hours=8)
+
+            # File Size
+            file_size = float(f[1]['size']) / (1024 * 1024) # MB
+            file_size = "{:.3f}".format(file_size)            
 
             # FileName
             file_name = f[0].lower()
@@ -132,7 +136,11 @@ class Hw_downloader(object):
             else:
                 chinese_name = chinese_name.group()
 
-            good_files[student_id].append(self.hw_file(timestamp, f[0], chinese_name, version))
+            good_files[student_id].append({'timestamp': timestamp,
+                                            'file_name': f[0],
+                                            'chinese_name': chinese_name,
+                                            'version': version,
+                                            'file_size': file_size})
             success_count += 1
         return good_files, success_count, len(error_files), error_files
     def download_file(self, path: str, output_path: str):

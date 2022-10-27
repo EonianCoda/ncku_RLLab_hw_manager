@@ -330,6 +330,54 @@ QPushButton
              <layout class="QHBoxLayout" name="horizontalLayout_4"/>
             </item>
             <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_6">
+              <item>
+               <widget class="QLabel" name="delay_submitted_student_num_label">
+                <property name="font">
+                 <font>
+                  <family>微軟正黑體</family>
+                  <pointsize>14</pointsize>
+                  <weight>75</weight>
+                  <italic>false</italic>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="layoutDirection">
+                 <enum>Qt::LeftToRight</enum>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">color:purple</string>
+                </property>
+                <property name="text">
+                 <string>遲交人數 </string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="total_file_size_label">
+                <property name="font">
+                 <font>
+                  <family>微軟正黑體</family>
+                  <pointsize>14</pointsize>
+                  <weight>75</weight>
+                  <italic>false</italic>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">color:black;</string>
+                </property>
+                <property name="text">
+                 <string>總檔案大小</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
              <layout class="QHBoxLayout" name="horizontalLayout_5">
               <item>
                <widget class="QPushButton" name="download_hw_btn">
@@ -379,7 +427,7 @@ QPushButton
      <x>30</x>
      <y>10</y>
      <width>491</width>
-     <height>219</height>
+     <height>236</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="LoginLayout">
@@ -440,6 +488,24 @@ QPushButton
          <widget class="QPushButton" name="login_and_store_btn">
           <property name="text">
            <string>儲存密碼並登入</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="auto_login_checkBox">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>每次自動登入</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <property name="tristate">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
