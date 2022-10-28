@@ -352,12 +352,12 @@ QPushButton
                  <string>遲交人數 </string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignCenter</set>
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="total_file_size_label">
+               <widget class="QLabel" name="no_submitted_student_num_label">
                 <property name="font">
                  <font>
                   <family>微軟正黑體</family>
@@ -367,15 +367,40 @@ QPushButton
                   <bold>true</bold>
                  </font>
                 </property>
+                <property name="layoutDirection">
+                 <enum>Qt::LeftToRight</enum>
+                </property>
                 <property name="styleSheet">
-                 <string notr="true">color:black;</string>
+                 <string notr="true">color:&quot;dark red&quot;;</string>
                 </property>
                 <property name="text">
-                 <string>總檔案大小</string>
+                 <string>未繳人數 </string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
              </layout>
+            </item>
+            <item>
+             <widget class="QLabel" name="total_file_size_label">
+              <property name="font">
+               <font>
+                <family>微軟正黑體</family>
+                <pointsize>14</pointsize>
+                <weight>75</weight>
+                <italic>false</italic>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">color:black;</string>
+              </property>
+              <property name="text">
+               <string>總檔案大小</string>
+              </property>
+             </widget>
             </item>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_5">

@@ -124,17 +124,34 @@ class Hw_downloader(object):
                 if match != None:
                     student_id = s_id
                     break
-            # No student ID Error
-            if student_id == None:
-                error_files.append((file_name,"檔名中不存在學號or該學號不在此課程學生名單中"))
-                continue
 
             # Find Chinese Name
             chinese_name = chinese_name_matcher.search(file_name)
             if chinese_name == None:
-                chinese_name = "XXX"
+                chinese_name = ""
             else:
                 chinese_name = chinese_name.group()
+            
+            # No student ID and chinese name
+            if student_id == None and chinese_name == "":
+                error_files.append((file_name,"學號不存在or學號不在學生名單中 and 姓名不存在"))
+                continue
+            elif student_id == None:
+                if chinese_name in self.student_names[course]:
+                    # Get student id from chinese name
+                    idx = self.student_names[course].index(chinese_name)
+                    # Duplicate name exist
+                    if chinese_name in self.student_names[course][idx + 1:]:
+                        error_files.append((file_name,"學號不存在，並且姓名可能存在重複"))
+                        continue
+                    student_id = self.student_IDS[course][idx]
+                # Cannot match chinese name
+                else:
+                    error_files.append((file_name,"學號不存在，並且姓名對不回去學號"))
+                    continue
+            elif chinese_name == "":
+                idx = self.student_IDS[course].index(student_id)
+                chinese_name = self.student_names[course][idx]
 
             good_files[student_id].append({'timestamp': timestamp,
                                             'file_name': f[0],

@@ -1,4 +1,3 @@
-from email import header
 import shutil
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import QMessageBox
@@ -13,8 +12,11 @@ import ftplib
 from pathlib import Path
 import subprocess
 FOLDER_PATH = "/Course/{}/Upload/Homework/"
+# Course List
 COURSE_FOLDERS = ['CvDl_2022_G', 'OpenCvDl_2022_Bs']
+# Csv file contains the student's name and id 
 COURSE_STUDENT_LIST = ['cvdl_students.csv', 'opencvdl_students.csv']
+TA_WHITE_LIST = ["cvdl_TA_whitelist.csv", "opencvdl_TA_whitelist.csv"]
 
 LOGIN_INFO = "login.key"
 DOWNLOAD_FILE_ROOT = Path("./download")
@@ -25,7 +27,7 @@ DOWNLOAD_FILE_ROOT = Path("./download")
 ##TODO 遲交分數比例
 ##TODO 新增下載log，避免多次重覆下載 
 ##TODO 新增開啟excel, 資料夾選項
-
+##TODO List Directory timeout problem
 
 ##TODO GIF圖檔失真
 
@@ -221,6 +223,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.loading_bar = LoadingProgress(self)
         
         self.download_thread = None
+        self.TA_whitelist = defaultdict(list)
+        for course, csv_file in zip(COURSE_FOLDERS, TA_WHITE_LIST):
+            with open(csv_file, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+
+            for line in lines:
+                line = line.strip()
+                if line != "":
+                    self.TA_whitelist[course].append(line)
     def check_login(self) -> bool:
         """Check whether ftp object exists
         """
@@ -281,22 +292,37 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.delay_time_show.setDate(date)
         self.ui.delay_time_show.setTime(time)
 
-        # print(self.ui.delay_time_show.dateTime().toPyDateTime())
     def output_submitted_info(self):
         if not self.check_login() or self.submitted_files == None:
             return
         
-        header = ["學號,姓名,最終版本,檔案名稱,最後更新時間,檔案大小(MB),是否遲交\n"]
+        contents = ["學號,姓名,最終版本,檔案名稱,最後更新時間,檔案大小(MB),是否遲交\n"]
 
         delay_time = self.ui.delay_time_show.dateTime().toPyDateTime()
 
-        delay_lines = []
-        non_delay_lines = []
+        delay_count = 0
+        no_submit_count = 0
         total_size = 0
-        for s_id, datas in sorted(self.submitted_files.items()):
-            data = find_final_version(datas)
+        
+        student_ids = self.downloader.student_IDS[self.cur_course_name]
+        student_names = self.downloader.student_names[self.cur_course_name]
+        white_list = self.TA_whitelist[self.cur_course_name]
+        sorted_idx = sorted(range(len(student_ids)), key=lambda k : student_ids[k])
+        for idx in sorted_idx:
+            s_id = student_ids[idx]
+            if s_id.upper() in white_list:
+                continue
+            name = student_names[idx]
+            if self.submitted_files.get(s_id) == None:
+                line = "{},{},,,,,\n".format(s_id.upper(), name)
+                contents.append(line)
+                no_submit_count += 1
+                continue
 
+            datas = self.submitted_files[s_id]
+            data = find_final_version(datas)
             if data['timestamp'] > delay_time:
+                delay_count += 1
                 delay = 1
             else:
                 delay = 0
@@ -308,11 +334,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                                     data['timestamp'].strftime("%Y/%m/%d %H:%m"), 
                                                     data['file_size'], 
                                                     delay)
-            if delay == 1:
-                delay_lines.append(line)
-            else:
-                non_delay_lines.append(line)
-            # contents.append(line)
+            contents.append(line)
         
         csv_file_name = "{}.csv".format(self.cur_hw)
         output_path = DOWNLOAD_FILE_ROOT / self.cur_course_name
@@ -320,12 +342,11 @@ class MainWindow(QtWidgets.QMainWindow):
         # Write Error log
         with open(output_path / csv_file_name, 'w', encoding='utf-8') as f:
             f.write('\ufeff')
-            f.writelines(header)
-            f.writelines(delay_lines)
-            f.writelines(non_delay_lines)
+            f.writelines(contents)
         # Update UI
-        self.ui.delay_submitted_student_num_label.setText("遲交人數: {}".format(len(delay_lines)))
+        self.ui.delay_submitted_student_num_label.setText("遲交人數: {}".format(delay_count))
         self.ui.total_file_size_label.setText("總檔案大小: {:.2f}G".format(total_size / 1024))
+        self.ui.no_submitted_student_num_label.setText("未繳人數: {}".format(no_submit_count))
 
         if len(self.error_files) != 0:
             file_name = "{}_submit_error.csv".format(self.cur_hw)
@@ -334,19 +355,11 @@ class MainWindow(QtWidgets.QMainWindow):
                 f = info[0]
                 error_msg = info[1]
                 lines.append("{},{}\n".format(f, error_msg))
-            # lines = [f + '\n' for f in self.error_files]
             with open(output_path / file_name, 'w', encoding='utf-8') as f:
                 f.write('\ufeff')
                 f.writelines(lines)
-
-        # Open Explorer
-        #subprocess.run(['"C:\\Program Files\\Microsoft Office\\root\\Office16\\EXCEL.EXE"',(output_path / csv_file_name)])
-       
-        #subprocess.run('C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Excel.exe "{}"'.format(output_path / csv_file_name))
-        # os.system('C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Excel.exe "{}"'.format(csv_file_name))
         os.system("start EXCEL.EXE {}".format(str(output_path / csv_file_name)))
-        # os.system('explorer.exe "{}"'.format(output_path))
-    
+
     def download_files(self):
         if not self.check_login() or self.submitted_files == None:
             return
