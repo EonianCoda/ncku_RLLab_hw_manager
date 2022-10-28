@@ -25,6 +25,7 @@ DOWNLOAD_FILE_ROOT = Path("./download")
 # if os.path.isdir(DOWNLOAD_FILE_ROOT):
 #     shutil.rmtree(DOWNLOAD_FILE_ROOT)
 ##TODO 遲交分數比例
+##TODO 匯入group
 ##TODO 新增下載log，避免多次重覆下載 
 ##TODO 新增開啟excel, 資料夾選項
 ##TODO List Directory timeout problem
