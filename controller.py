@@ -1,7 +1,10 @@
 import shutil
 from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QMessageBox, QTableWidgetItem, QWidget
 from PyQt5.QtCore import QThread, pyqtSignal
+import PyQt5
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QFileDialog, QAbstractButton
 from UI import Ui_Form
 from hw_downloader import Hw_downloader
 from collections import defaultdict
@@ -10,13 +13,19 @@ import patoolib # for rar file
 import pickle
 import ftplib
 from pathlib import Path
-import subprocess
+from collections import defaultdict
+from functools import cmp_to_key
+import openpyxl
+from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.styles.colors import Color
+from openpyxl.styles.borders import Border, Side
+
 FOLDER_PATH = "/Course/{}/Upload/Homework/"
 # Course List
 COURSE_FOLDERS = ['CvDl_2022_G', 'OpenCvDl_2022_Bs']
-# Csv file contains the student's name and id 
-COURSE_STUDENT_LIST = ['cvdl_students.csv', 'opencvdl_students.csv']
-TA_WHITE_LIST = ["cvdl_TA_whitelist.csv", "opencvdl_TA_whitelist.csv"]
+# CSV file contains the student's name and id
+COURSE_STUDENT_LIST = ['./course_data/cvdl_students.csv', './course_data/opencvdl_students.csv']
+TA_WHITE_LIST = ["./course_data/cvdl_TA_whitelist.csv", "./course_data/opencvdl_TA_whitelist.csv"]
 
 LOGIN_INFO = "login.key"
 DOWNLOAD_FILE_ROOT = Path("./download")
@@ -42,12 +51,19 @@ QLabel
 }
 """
 def unzip(file_path : str, output_directory : str):
+    """Unzip a zip file into directory
+    Args:
+        file_path: the path for zip file
+        output_directory: the path for extract the zip file
+    """
     os.makedirs(output_directory, exist_ok=True)
     output_directory = str(output_directory)
     file_path = str(file_path)
     patoolib.extract_archive(file_path, outdir=output_directory)
 
 def find_final_version(datas : list):
+    """Use timestamp to find the latest version homework
+    """
     max_timestamp = datas[0]['timestamp']
     max_idx = 0
     for i, data in enumerate(datas[1:]):
@@ -56,6 +72,29 @@ def find_final_version(datas : list):
             max_idx = i
     return datas[max_idx]
 
+def clear_QTable(table):
+    cur_row = table.rowCount()
+    for _ in range(cur_row):
+        table.removeRow(0)
+    cur_col = table.columnCount()
+    for _ in range(cur_col):
+        table.removeColumn(0)
+
+def compare_time(t1 : str, t2 :str):
+    h1 = int(t1[0:2])
+    h2 = int(t2[0:2])
+    m1 = int(t1[3:5])
+    m2 = int(t2[3:5])
+    if h1 > h2 or (h1 == h2 and m1 > m2):
+        return 1
+    elif h1 < h2 or (h1 == h2 and m1 < m2):
+        return -1
+    else:
+        return 0
+def set_xlsx_row_border(sheet, row, border_style):
+    for row in sheet.iter_rows(min_row=row, min_col=1, max_row=row, max_col=50):
+        for cell in row:
+            cell.border = border_style
 class LoadingProgress(QtWidgets.QDialog):
     update_title_signal = pyqtSignal(str)
     update_content_signal = pyqtSignal(str)
@@ -198,19 +237,55 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
-        self.downloader = Hw_downloader(courses=COURSE_FOLDERS, course_stduent_list=COURSE_STUDENT_LIST)
-
+        
         self.ui.course_selecter.addItems(COURSE_FOLDERS)
         self.ui.course_selecter.currentTextChanged.connect(self.change_hw_options)
         self.submitted_files = None
         self.error_files = None
         self.ftp_target_path = None
-        
+        self.download_thread = None
+        # Set Dialogue box and loading progress bar
         self.dlg = QMessageBox(self)
-        # For testing
-        self.hw_folders = {'CvDl_2022_G':['hw1_1'], 'OpenCvDl_2022_Bs':['hw1_1', 'hw_1_2']}
-        self.ui.hw_selecter.addItems(['hw1_1', 'hw_1_2'])
-        
+        self.loading_bar = LoadingProgress(self)
+        self.setup_control()
+        self.ui.course_selecter.setEnabled(False)
+        self.ui.hw_selecter.setEnabled(False)
+
+        # Load TA white list
+        self.TA_whitelist = defaultdict(list)
+        for course, csv_file in zip(COURSE_FOLDERS, TA_WHITE_LIST):
+            with open(csv_file, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+            for line in lines:
+                line = line.strip()
+                if line != "":
+                    self.TA_whitelist[course].append(line.upper())
+
+        # Load Students csv file
+        self.student_IDS = defaultdict(list)
+        self.student_names = defaultdict(list)
+        self.student_major = defaultdict(list)
+        for course, csv_file in zip(COURSE_FOLDERS, COURSE_STUDENT_LIST):
+            with open(csv_file, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+            white_list = self.TA_whitelist[course]
+            for line in lines[1:]:
+                line = line.replace("\u3000",'').replace("\n",'')
+                data = line.split(',')
+                name = data[0]
+                stdID = data[3].strip().upper()
+                major = data[4]
+                if len(stdID) != 9 or stdID in white_list:
+                    continue
+                self.student_names[course].append(name)
+                self.student_IDS[course].append(stdID)
+                self.student_major[course].append(major)
+
+        # Set downloader
+        self.downloader = Hw_downloader(student_IDS = self.student_IDS,
+                                        student_names = self.student_names)
+
+        # If account log exist, then read it and auto login
         if os.path.isfile(LOGIN_INFO):
             with open("login.key", 'rb') as f:
                 username, password, auto_login = pickle.load(f)
@@ -220,19 +295,29 @@ class MainWindow(QtWidgets.QMainWindow):
             # Auto login
             if auto_login:
                 self.login_ftp()
-        self.setup_control()
-        self.loading_bar = LoadingProgress(self)
-        
-        self.download_thread = None
-        self.TA_whitelist = defaultdict(list)
-        for course, csv_file in zip(COURSE_FOLDERS, TA_WHITE_LIST):
-            with open(csv_file, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
 
-            for line in lines:
-                line = line.strip()
-                if line != "":
-                    self.TA_whitelist[course].append(line)
+        clear_QTable(self.ui.set_group_table)
+        # corner = self.ui.set_group_table.findChild(QAbstractButton)
+        # corner.setCheckable(True)
+        # corner.clicked.connect(lambda checked, col=0, all_flag=True :self.group_table_select_all(checked, col, all_flag))
+    def group_table_select_all(self, checked : bool, col : int, all_flag=False):
+        # Select All
+        if all_flag:
+            max_row = self.ui.set_group_table.rowCount()
+            max_col = self.ui.set_group_table.columnCount()
+            for row in range(max_row):
+                for col in range(max_col):
+                    cell = self.ui.set_group_table.cellWidget(row, col)
+                    if cell != None:
+                        cell.setChecked(checked)
+            return
+        # Seletct one column
+        max_row = self.ui.set_group_table.rowCount()
+        for row in range(max_row):
+            cell = self.ui.set_group_table.cellWidget(row, col)
+            if cell != None:
+                cell.setChecked(checked)
+        
     def check_login(self) -> bool:
         """Check whether ftp object exists
         """
@@ -251,6 +336,29 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.hw_selecter.currentTextChanged.connect(self.set_search_path)
         self.ui.course_selecter.currentTextChanged.connect(self.set_search_path)
+
+        self.ui.read_demo_time_file_btn.clicked.connect(self.select_demo_file)
+
+        self.ui.download_hw_from_selection_btn.clicked.connect(self.download_from_selection)
+    def download_from_selection(self):
+        #self.ui.set_group_table
+        pass
+    def select_demo_file(self):
+        clear_QTable(self.ui.set_group_table)
+        filename, filetype = QFileDialog.getOpenFileName(self,
+                                                        caption="Open file",
+                                                        directory="./",
+                                                        filter="Csv Files (*.csv)")
+        
+        if filename == "":
+            return
+        if self.ui.am_num_TA_input.text() == "" or self.ui.pm_num_TA_input.text() == "":
+            self.dlg.setWindowTitle("警告")
+            self.dlg.setText("請先填入上/下午分組數")
+            self.dlg.exec()
+            return
+        num_TA = [int(self.ui.am_num_TA_input.text()), int(self.ui.pm_num_TA_input.text())]
+        self.process_group_data(filename, num_TA)
     
     def login_ftp(self):
         # username or password is empty
@@ -275,6 +383,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.login_status_label.setStyleSheet(login_success_styleSheet) 
         self.ui.login_status_label.setText("登入狀態: 已登入")
 
+        self.ui.course_selecter.setEnabled(True)
+        self.ui.hw_selecter.setEnabled(True)
         return True
     def login_and_store(self):
         success = self.login_ftp()
@@ -297,7 +407,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.check_login() or self.submitted_files == None:
             return
         
-        contents = ["學號,姓名,最終版本,檔案名稱,最後更新時間,檔案大小(MB),是否遲交\n"]
+        contents = ["學號,姓名,科系,最終版本,檔案名稱,檔案上傳時間,檔案大小(MB),是否遲交\n"]
 
         delay_time = self.ui.delay_time_show.dateTime().toPyDateTime()
 
@@ -305,17 +415,19 @@ class MainWindow(QtWidgets.QMainWindow):
         no_submit_count = 0
         total_size = 0
         
-        student_ids = self.downloader.student_IDS[self.cur_course_name]
-        student_names = self.downloader.student_names[self.cur_course_name]
-        white_list = self.TA_whitelist[self.cur_course_name]
+        student_ids = self.student_IDS[self.cur_course_name]
+        student_names = self.student_names[self.cur_course_name]
+        student_major = self.student_major[self.cur_course_name]
+        # white_list = self.TA_whitelist[self.cur_course_name]
         sorted_idx = sorted(range(len(student_ids)), key=lambda k : student_ids[k])
         for idx in sorted_idx:
             s_id = student_ids[idx]
-            if s_id.upper() in white_list:
-                continue
+            # if s_id.upper() in white_list:
+            #     continue
             name = student_names[idx]
+            major = student_major[idx]
             if self.submitted_files.get(s_id) == None:
-                line = "{},{},,,,,\n".format(s_id.upper(), name)
+                line = "{},{},{},,,,,\n".format(s_id.upper(), name, major)
                 contents.append(line)
                 no_submit_count += 1
                 continue
@@ -328,8 +440,9 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 delay = 0
             total_size += float(data['file_size'])
-            line = "{},{},{},{},{},{},{}\n".format(s_id.upper(), 
+            line = "{},{},{},{},{},{},{},{}\n".format(s_id.upper(), 
                                                     data['chinese_name'],
+                                                    major,
                                                     data['version'],
                                                     data['file_name'],
                                                     data['timestamp'].strftime("%Y/%m/%d %H:%m"), 
@@ -381,7 +494,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                                     hw_mark=self.cur_hw,
                                                     submitted_files = self.submitted_files)
         self.download_thread.start()                                   
-
+ 
     def show_not_connect_message(self):
         self.dlg.setWindowTitle("錯誤")
         self.dlg.setText("請先登入後再執行此功能")
@@ -410,8 +523,182 @@ class MainWindow(QtWidgets.QMainWindow):
     def change_hw_options(self, value : str):
         self.ui.hw_selecter.clear()
         self.ui.hw_selecter.addItems(self.hw_folders[value])
-        
+
+    def process_group_data(self, group_csv_file:list, num_TA:tuple):
+        """Process group data
+        Args:
+            group_csv_file: the path of group csv file
+            num_TA: a tuple contains two value, first value means the number of TA in the morning, Second value means the number of TA in the afternonn
+        """
+        def create_cb_item():
+            cb = QtWidgets.QCheckBox(parent=self.ui.set_group_table)
+            cb.setStyleSheet("margin-left:10%; margin-right:10%;")
+            return cb
+        with open(group_csv_file,'r', encoding='utf-8') as f:
+            lines = f.readlines()
+
+        # Set Table Header
+        max_TA_num = max(num_TA)
+        mark = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+        self.ui.set_group_table.insertColumn(0)
+        header = ['時段']
+        for m in mark[:max_TA_num]:
+            self.ui.set_group_table.insertColumn(0)
+            header.append('{}組'.format(m))
+        self.ui.set_group_table.setHorizontalHeaderLabels(header)
+
+        self.ui.set_group_table.insertRow(0)
+        # Set select all
+        cb = create_cb_item()
+        cb.clicked.connect(lambda checked: self.group_table_select_all(checked, 0, all_flag=True))
+        self.ui.set_group_table.setCellWidget(0, 0, cb)
+
+        for col in range(1, max_TA_num + 1):
+            cb = create_cb_item()
+            cb.clicked.connect(lambda checked, col=col: self.group_table_select_all(checked, col))
+            self.ui.set_group_table.setCellWidget(0, col, cb)
+
+        time_txt = "{:02d}:00-{:02d}:00"
+        timestamps = []
+        num_TA_per_time = []
+        num_student = 0
+
+        for i in range(9):
+            hour = 9 + i
+            timestamp = time_txt.format(hour, hour + 1)
+            timestamps.append(timestamp)
+
+        student_name = dict()
+        datas = defaultdict(list)
+        for line in lines[1:]:
+            data = line.split(',')
+            s_id = data[2]
+            selection = data[4]
+            # Invalid Student id
+            if len(s_id) != 9:
+                continue
+            # No Selection
+            if selection == "":
+                continue
+            
+            # Store student_name
+            student_name[s_id] = data[1]
+
+            idx = (int(selection[5:]) - 1) // 4
+            timestamp = timestamps[idx]
+            num_student += 1
+            datas[timestamp].append(s_id)
+
+        sorted_times = sorted(datas.keys(), key=cmp_to_key(compare_time))
+
+        for time_key in sorted_times:
+            s_ids = datas[time_key]
+            s_ids = sorted(s_ids)
+            datas[time_key] = s_ids
+
+            hour = int(time_key[:2])
+            # Afternoon
+            if hour >= 13:
+                num_TA_per_time.append(num_TA[1])
+            else:
+                num_TA_per_time.append(num_TA[0])
+
+            # Update table
+            cur_row = self.ui.set_group_table.rowCount()
+            self.ui.set_group_table.insertRow(cur_row)
+            # Add timestamp
+            item = QTableWidgetItem(time_key)
+            item.setTextAlignment(PyQt5.QtCore.Qt.AlignCenter)
+            self.ui.set_group_table.setItem(cur_row, 0, item)
+
+            for col in range(1, num_TA_per_time[-1] + 1):
+                cb = create_cb_item()
+                self.ui.set_group_table.setCellWidget(cur_row, col, cb)
+        vertical_header = ['全選'] + [''] * len(sorted_times)
+        self.ui.set_group_table.setVerticalHeaderLabels(vertical_header)
+
+        self.ui.set_group_table.resizeColumnsToContents()
+
+        # Style
+        middle_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        workbook = openpyxl.Workbook()
+        sheet = workbook.worksheets[0]
+        # Add header
+        sheet.append(['時間','分組','姓名','學號'])
+        set_xlsx_row_border(sheet, 1, Border(bottom=Side(style='medium')))
+
+        ### Set Timestamp ###
+        cur_row = 2
+        for time_key in sorted_times:
+            # Set Time stamp
+            timestamp = "{}\n~\n{}".format(time_key[0:5],time_key[-5:])
+            cell = sheet.cell(row=cur_row, 
+                            column=1, 
+                            value = timestamp)
+            # Set Style
+            cell.font = Font(size=12, bold=True)
+            cell.alignment = middle_alignment
+            cell.border = Border(right=Side(style='thin'))
+            set_xlsx_row_border(sheet, 
+                                cur_row + len(datas[time_key]) - 1, 
+                                Border(bottom=Side(style='medium')))
+            # Merge Cell
+            sheet.merge_cells(start_row=cur_row,
+                                end_row=cur_row + len(datas[time_key]) - 1,
+                                start_column=1,
+                                end_column=1)
+            cur_row += len(datas[time_key])
+            
+        ### Set group and student ###
+        cur_row = 2
+        for time_key, num_group in zip(sorted_times, num_TA_per_time):
+            time_group_data = datas[time_key]
+
+            # Compute number for each group
+            per_num = len(time_group_data) // num_group
+            per_student_group = [per_num] * num_group
+            for i in range(len(time_group_data) - per_num * num_group):
+                per_student_group[i] += 1
+            
+            cur_color_idx = 0
+            cur_student_idx = 0
+            for mark_idx, num in enumerate(per_student_group):
+                if num == 0:
+                    continue
+                group_name = "{}組".format(mark[mark_idx])
+                
+                cell = sheet.cell(row=cur_row, 
+                                    column=2, 
+                                    value = group_name)
+                # Set Style
+                cell.font = Font(bold=True)
+                cell.alignment =middle_alignment
+                color_index = (45 + cur_color_idx) % 64
+                # Color index = 0 is black
+                if color_index == 0:
+                    color_index = 1
+                    cur_color_idx += 1
+                cell.fill = PatternFill('solid', Color(index=color_index))
+                # Merge Cell
+                sheet.merge_cells(start_row=cur_row,
+                                end_row=cur_row + num - 1,
+                                start_column=2,
+                                end_column=2)
+                # Student ids
+                for i, s_id in enumerate(time_group_data[cur_student_idx : cur_student_idx+num]):
+                    name = student_name[s_id]
+                    sheet.cell(row=cur_row + i, column=3, value = name)
+                    sheet.cell(row=cur_row + i, column=4, value = s_id)
+                cur_student_idx += num
+                cur_row += num
+                cur_color_idx += 1
+
+        # Save File
+        workbook.save('test.xlsx')
     def search_folders(self):
+        """Search homework folders
+        """
         if self.downloader.ftp == None:
             self.show_not_connect_message()
             return

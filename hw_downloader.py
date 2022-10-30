@@ -9,8 +9,8 @@ from datetime import timedelta
 
 
 class Hw_downloader(object):
-    def __init__(self, courses : list,
-                        course_stduent_list : list):
+    def __init__(self, student_IDS : dict,
+                        student_names : dict):
         """This is a class for manage ftp
         Attributes:
             course: a list of string, which contains courses
@@ -22,21 +22,9 @@ class Hw_downloader(object):
         self.hw_file = namedtuple('Hw_file', ['timestamp', 'file_name', 'name','version','size'] ) # S_ID = student id
         self.ftp = None
 
+        self.student_IDS = student_IDS
+        self.student_names = student_names
 
-        if len(courses) != len(course_stduent_list) or courses == 0:
-            raise ValueError("Length of course or course_stdudent_list have some error!")
-
-        self.student_IDS = defaultdict(list)
-        self.student_names = defaultdict(list)
-        for course, csv_file in zip(courses, course_stduent_list):
-            with open(csv_file, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
-            for line in lines[1:]:
-                line = line.replace("\u3000",'').replace("\n",'')
-                name = line.split(',')[0]
-                stdID = line.split(',')[1].lower()
-                self.student_names[course].append(name)
-                self.student_IDS[course].append(stdID)
 
     def connect(self, username:str, password:str):
         self.ftp = FTP()
@@ -99,7 +87,7 @@ class Hw_downloader(object):
             file_size = "{:.3f}".format(file_size)            
 
             # FileName
-            file_name = f[0].lower()
+            file_name = f[0].upper()
 
             # The name of files on Windows cannot contain question mark(?)
             if '?' in file_name:
@@ -161,7 +149,6 @@ class Hw_downloader(object):
             success_count += 1
         return good_files, success_count, len(error_files), error_files
     def download_file(self, path: str, output_path: str):
-
         self.ftp.encoding = 'big5'
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         f = open(output_path, "wb")
@@ -169,4 +156,3 @@ class Hw_downloader(object):
         self.ftp.retrbinary(download_cmd, f.write)
         f.close()
         self.ftp.encoding = 'utf-8'
-        

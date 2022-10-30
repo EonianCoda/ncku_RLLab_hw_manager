@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(835, 698)
+        Form.resize(873, 1237)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -32,6 +32,105 @@ class Ui_Form(object):
 "{\n"
 "    font: 75 10pt \"微軟正黑體\";\n"
 "    font-weight: bold;\n"
+"}\n"
+"QScrollBar::horizontal {\n"
+"     border: 1px solid #222222;\n"
+"     background: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0.0 #121212, stop: 0.2 #282828, stop: 1 #484848);\n"
+"     height: 10px;\n"
+"     margin: 0px 16px 0 16px;\n"
+"}\n"
+"\n"
+"QScrollBar::handle:horizontal\n"
+"{\n"
+"      background: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0\n"
+"      #3282b8, stop: 0.5 #bbe1fa, stop: 1 #3282b8);\n"
+"      min-height: 24px;\n"
+"      border-radius: 2px;\n"
+"}\n"
+"\n"
+"QScrollBar::add-line:horizontal {\n"
+"      border: 1px solid #1b1b19;\n"
+"      border-radius: 2px;\n"
+"      background: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0\n"
+"      #3282b8, stop: 1 #bbe1fa);\n"
+"      width: 14px;\n"
+"      subcontrol-position: right;\n"
+"      subcontrol-origin: margin;\n"
+"}\n"
+"\n"
+"QScrollBar::sub-line:horizontal {\n"
+"      border: 1px solid #1b1b19;\n"
+"      border-radius: 2px;\n"
+"      background: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0\n"
+"      #3282b8, stop: 1 #bbe1fa);\n"
+"      width: 14px;\n"
+"     subcontrol-position: left;\n"
+"     subcontrol-origin: margin;\n"
+"}\n"
+"\n"
+"QScrollBar::right-arrow:horizontal, QScrollBar::left-arrow:horizontal\n"
+"{\n"
+"      border: 1px solid black;\n"
+"      width: 1px;\n"
+"      height: 1px;\n"
+"      background: white;\n"
+"}\n"
+"\n"
+"QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal\n"
+"{\n"
+"      background: none;\n"
+"}\n"
+"\n"
+"QScrollBar:vertical\n"
+"{\n"
+"      background: QLinearGradient( x1: 0, y1: 0, x2: 1, y2: 0, stop: 0.0 #121212, stop: 0.2 #282828, stop: 1 #484848);\n"
+"      width: 10px;\n"
+"      margin: 16px 0 16px 0;\n"
+"      border: 1px solid #222222;\n"
+"}\n"
+"\n"
+"QScrollBar::handle:vertical\n"
+"{\n"
+"      background: QLinearGradient( x1: 0, y1: 0, x2: 1, y2: 0, stop: 0\n"
+"      #3282b8, stop: 0.5 #bbe1fa, stop: 1 #3282b8);\n"
+"      min-height: 24px;\n"
+"      border-radius: 2px;\n"
+"}\n"
+"\n"
+"QScrollBar::add-line:vertical\n"
+"{\n"
+"      border: 1px solid #1b1b19;\n"
+"      border-radius: 2px;\n"
+"      background: QLinearGradient( x1: 0, y1: 0, x2: 1, y2: 0, stop: 0\n"
+"      #3282b8, stop: 1 #bbe1fa);\n"
+"      height: 14px;\n"
+"      subcontrol-position: bottom;\n"
+"      subcontrol-origin: margin;\n"
+"}\n"
+"\n"
+"QScrollBar::sub-line:vertical\n"
+"{\n"
+"      border: 1px solid #1b1b19;\n"
+"      border-radius: 2px;\n"
+"      background: QLinearGradient( x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #bbe1fa,\n"
+"      stop: 1 #3282b8);\n"
+"      height: 14px;\n"
+"      subcontrol-position: top;\n"
+"      subcontrol-origin: margin;\n"
+"}\n"
+"\n"
+"QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical\n"
+"{\n"
+"      border: 1px solid black;\n"
+"      width: 1px;\n"
+"      height: 1px;\n"
+"      background: white;\n"
+"}\n"
+"\n"
+"\n"
+"QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical\n"
+"{\n"
+"      background: none;\n"
 "}")
         self.horizontalLayoutWidget_2 = QtWidgets.QWidget(Form)
         self.horizontalLayoutWidget_2.setGeometry(QtCore.QRect(30, 250, 775, 419))
@@ -343,6 +442,69 @@ class Ui_Form(object):
 "    color: red;\n"
 "}")
         self.login_status_label.setObjectName("login_status_label")
+        self.verticalLayoutWidget = QtWidgets.QWidget(Form)
+        self.verticalLayoutWidget.setGeometry(QtCore.QRect(40, 690, 761, 471))
+        self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
+        self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.verticalLayout_3.addLayout(self.horizontalLayout)
+        self.gridLayout = QtWidgets.QGridLayout()
+        self.gridLayout.setObjectName("gridLayout")
+        self.am_num_TA_input = QtWidgets.QLineEdit(self.verticalLayoutWidget)
+        font = QtGui.QFont()
+        font.setPointSize(15)
+        font.setBold(False)
+        font.setWeight(50)
+        self.am_num_TA_input.setFont(font)
+        self.am_num_TA_input.setObjectName("am_num_TA_input")
+        self.gridLayout.addWidget(self.am_num_TA_input, 2, 0, 1, 1)
+        self.label_4 = QtWidgets.QLabel(self.verticalLayoutWidget)
+        self.label_4.setObjectName("label_4")
+        self.gridLayout.addWidget(self.label_4, 1, 0, 1, 1)
+        self.pm_num_TA_input = QtWidgets.QLineEdit(self.verticalLayoutWidget)
+        font = QtGui.QFont()
+        font.setPointSize(15)
+        self.pm_num_TA_input.setFont(font)
+        self.pm_num_TA_input.setObjectName("pm_num_TA_input")
+        self.gridLayout.addWidget(self.pm_num_TA_input, 2, 2, 1, 1)
+        self.label_5 = QtWidgets.QLabel(self.verticalLayoutWidget)
+        self.label_5.setObjectName("label_5")
+        self.gridLayout.addWidget(self.label_5, 1, 2, 1, 1)
+        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.gridLayout.addItem(spacerItem1, 1, 3, 1, 1)
+        self.verticalLayout_3.addLayout(self.gridLayout)
+        self.read_demo_time_file_btn = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.read_demo_time_file_btn.setObjectName("read_demo_time_file_btn")
+        self.verticalLayout_3.addWidget(self.read_demo_time_file_btn)
+        self.set_group_table = QtWidgets.QTableWidget(self.verticalLayoutWidget)
+        self.set_group_table.setStyleSheet("QHeaderView::section\n"
+"{\n"
+"    font: 11pt \"Times New Roman\";\n"
+"    font-weight: bold;\n"
+"    padding-right:2ex;\n"
+"    padding-left:2ex;\n"
+"    background-color:#7FB3D2;\n"
+"}\n"
+"")
+        self.set_group_table.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        self.set_group_table.setObjectName("set_group_table")
+        self.set_group_table.setColumnCount(3)
+        self.set_group_table.setRowCount(1)
+        item = QtWidgets.QTableWidgetItem()
+        self.set_group_table.setVerticalHeaderItem(0, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.set_group_table.setHorizontalHeaderItem(0, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.set_group_table.setHorizontalHeaderItem(1, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.set_group_table.setHorizontalHeaderItem(2, item)
+        self.verticalLayout_3.addWidget(self.set_group_table)
+        self.download_hw_from_selection_btn = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.download_hw_from_selection_btn.setObjectName("download_hw_from_selection_btn")
+        self.verticalLayout_3.addWidget(self.download_hw_from_selection_btn)
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -371,3 +533,15 @@ class Ui_Form(object):
         self.login_and_store_btn.setText(_translate("Form", "儲存密碼並登入"))
         self.auto_login_checkBox.setText(_translate("Form", "每次自動登入"))
         self.login_status_label.setText(_translate("Form", "登入狀態: 未登入"))
+        self.am_num_TA_input.setText(_translate("Form", "8"))
+        self.label_4.setText(_translate("Form", "上午TA數"))
+        self.pm_num_TA_input.setText(_translate("Form", "4"))
+        self.label_5.setText(_translate("Form", "下午TA數"))
+        self.read_demo_time_file_btn.setText(_translate("Form", "讀取demo時間選擇檔案"))
+        item = self.set_group_table.verticalHeaderItem(0)
+        item.setText(_translate("Form", "組別全選"))
+        item = self.set_group_table.horizontalHeaderItem(0)
+        item.setText(_translate("Form", "時段"))
+        item = self.set_group_table.horizontalHeaderItem(1)
+        item.setText(_translate("Form", "A組"))
+        self.download_hw_from_selection_btn.setText(_translate("Form", "根據設定開始下載"))
