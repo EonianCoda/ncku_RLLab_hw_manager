@@ -44,18 +44,11 @@ class Hw_downloader(object):
         self.ftp.login(self.username, self.password)
         print("Reconnect")
     def list_folders(self, path):
-        # Search ftp
-        search_result = []
-        self.ftp.dir(path, search_result.append)
         folders = []
-        for f in search_result:
-            info = f.split()[5:]
-
-            file_name = info[3]
-            # Skip
-            if file_name == '.' or file_name == '..':
-                continue
-            folders.append(file_name)
+        result = self.ftp.mlsd(path=path,facts=["Type"])
+        for name, meta in result:
+            if meta['type'] == 'dir' and 'hw' in name.lower():
+                folders.append(name)
         return folders
     
     def list_hw_files(self, path:str, course:str):
