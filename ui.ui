@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>873</width>
+    <width>848</width>
     <height>1237</height>
    </rect>
   </property>
@@ -134,417 +134,6 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
       background: none;
 }</string>
   </property>
-  <widget class="QWidget" name="horizontalLayoutWidget_2">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>250</y>
-     <width>775</width>
-     <height>419</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="MainLayout">
-    <item>
-     <layout class="QVBoxLayout" name="DelayTime_layout">
-      <item>
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>遲交時間設定:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="not_use_delay_ckb">
-        <property name="styleSheet">
-         <string notr="true">QCheckBox{
-	font: 75 11pt &quot;微軟正黑體&quot;;
-}</string>
-        </property>
-        <property name="text">
-         <string>不設定遲交時間</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QDateTimeEdit" name="delay_time_show">
-        <property name="font">
-         <font>
-          <family>微軟正黑體</family>
-          <pointsize>11</pointsize>
-          <weight>9</weight>
-          <italic>false</italic>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QDateTimeEdit{
-	font: 75 11pt &quot;微軟正黑體&quot;;
-}</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="Line" name="line">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCalendarWidget" name="set_date"/>
-      </item>
-      <item>
-       <widget class="QTimeEdit" name="set_time">
-        <property name="styleSheet">
-         <string notr="true">QDateTimeEdit{
-	font: 75 11pt &quot;微軟正黑體&quot;;
-}</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="set_delay_time">
-        <property name="text">
-         <string>設定</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <widget class="Line" name="line_3">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="FunctionLayout">
-      <item>
-       <layout class="QGridLayout" name="SelectLayout" columnstretch="0,0">
-        <item row="0" column="1">
-         <widget class="QLabel" name="hw_label">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <family>微軟正黑體</family>
-            <pointsize>14</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Homework</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="course_label">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <family>微軟正黑體</family>
-            <pointsize>14</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>課程</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QComboBox" name="hw_selecter">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>14</pointsize>
-           </font>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QComboBox" name="course_selecter">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>14</pointsize>
-           </font>
-          </property>
-          <property name="editable">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="search_path_show">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="font">
-         <font>
-          <family>微軟正黑體</family>
-          <pointsize>10</pointsize>
-          <weight>9</weight>
-          <italic>false</italic>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QLineEdit
-{	
-	font: 75 10pt &quot;微軟正黑體&quot;;
-}</string>
-        </property>
-        <property name="text">
-         <string>/Course/</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" name="verticalLayout_5">
-        <property name="topMargin">
-         <number>30</number>
-        </property>
-        <item>
-         <widget class="QPushButton" name="search_files_btn">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>搜尋檔案</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <widget class="QLabel" name="available_files_label">
-            <property name="font">
-             <font>
-              <family>微軟正黑體</family>
-              <pointsize>14</pointsize>
-              <weight>75</weight>
-              <italic>false</italic>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">color:green;</string>
-            </property>
-            <property name="text">
-             <string>有效檔案 </string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="unavailable_files_label">
-            <property name="font">
-             <font>
-              <family>微軟正黑體</family>
-              <pointsize>14</pointsize>
-              <weight>75</weight>
-              <italic>false</italic>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">color:red</string>
-            </property>
-            <property name="text">
-             <string>無效檔案</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="submitted_student_num_label">
-            <property name="font">
-             <font>
-              <family>微軟正黑體</family>
-              <pointsize>14</pointsize>
-              <weight>75</weight>
-              <italic>false</italic>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">color:blue</string>
-            </property>
-            <property name="text">
-             <string>繳交人數</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
-           <layout class="QVBoxLayout" name="DownloadLayout">
-            <item>
-             <widget class="QPushButton" name="output_submitted_info_btn">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string>匯出繳交資料</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_4"/>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_6">
-              <item>
-               <widget class="QLabel" name="delay_submitted_student_num_label">
-                <property name="font">
-                 <font>
-                  <family>微軟正黑體</family>
-                  <pointsize>14</pointsize>
-                  <weight>75</weight>
-                  <italic>false</italic>
-                  <bold>true</bold>
-                 </font>
-                </property>
-                <property name="layoutDirection">
-                 <enum>Qt::LeftToRight</enum>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">color:purple</string>
-                </property>
-                <property name="text">
-                 <string>遲交人數 </string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="no_submitted_student_num_label">
-                <property name="font">
-                 <font>
-                  <family>微軟正黑體</family>
-                  <pointsize>14</pointsize>
-                  <weight>75</weight>
-                  <italic>false</italic>
-                  <bold>true</bold>
-                 </font>
-                </property>
-                <property name="layoutDirection">
-                 <enum>Qt::LeftToRight</enum>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">color:&quot;dark red&quot;;</string>
-                </property>
-                <property name="text">
-                 <string>未繳人數 </string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <widget class="QLabel" name="total_file_size_label">
-              <property name="font">
-               <font>
-                <family>微軟正黑體</family>
-                <pointsize>14</pointsize>
-                <weight>75</weight>
-                <italic>false</italic>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">color:black;</string>
-              </property>
-              <property name="text">
-               <string>總檔案大小</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_5">
-              <item>
-               <widget class="QPushButton" name="download_hw_btn">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="text">
-                 <string>下載作業</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <spacer name="verticalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="Line" name="line_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-   </layout>
-  </widget>
   <widget class="QWidget" name="horizontalLayoutWidget">
    <property name="geometry">
     <rect>
@@ -672,8 +261,8 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
   <widget class="QWidget" name="verticalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>40</x>
-     <y>690</y>
+     <x>30</x>
+     <y>730</y>
      <width>761</width>
      <height>471</height>
     </rect>
@@ -741,6 +330,9 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
     </item>
     <item>
      <widget class="QPushButton" name="read_demo_time_file_btn">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="text">
        <string>讀取demo時間選擇檔案</string>
       </property>
@@ -786,8 +378,310 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
     </item>
     <item>
      <widget class="QPushButton" name="download_hw_from_selection_btn">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="text">
        <string>根據設定開始下載</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="select_and_unzip_files_btn">
+      <property name="text">
+       <string>選擇目錄並解壓縮全部檔案</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget_2">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>250</y>
+     <width>651</width>
+     <height>469</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="Main_layout">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_7">
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_6">
+        <item>
+         <widget class="QLabel" name="course_label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <family>微軟正黑體</family>
+            <pointsize>14</pointsize>
+            <weight>75</weight>
+            <italic>false</italic>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>課程</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="course_selecter">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>14</pointsize>
+           </font>
+          </property>
+          <property name="editable">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_7">
+        <property name="spacing">
+         <number>4</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="hw_label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <family>微軟正黑體</family>
+            <pointsize>14</pointsize>
+            <weight>75</weight>
+            <italic>false</italic>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Homework</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="hw_selecter">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>14</pointsize>
+           </font>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_8">
+        <item>
+         <widget class="QPushButton" name="search_files_btn">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>搜尋檔案</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="import_files_btn">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>匯入檔案</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QLabel" name="num_student_label">
+      <property name="styleSheet">
+       <string notr="true">color:blue</string>
+      </property>
+      <property name="text">
+       <string>修課人數:</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QTableWidget" name="hw_submitted_status_table">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <column>
+       <property name="text">
+        <string>有效檔案</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>無效檔案</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>繳交人數</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>未繳人數</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>遲交人數</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>總檔案大小</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>遲交時間</string>
+       </property>
+      </column>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>遲交時間設定:</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_8">
+      <item>
+       <widget class="QComboBox" name="sub_hw_selecter_for_delay_selecter">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>14</pointsize>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDateTimeEdit" name="delay_time_set">
+        <property name="font">
+         <font>
+          <family>微軟正黑體</family>
+          <pointsize>11</pointsize>
+          <weight>9</weight>
+          <italic>false</italic>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QDateTimeEdit{
+	font: 75 11pt &quot;微軟正黑體&quot;;
+}</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="set_delay_time">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>設定</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="write_delay_to_setting_btn">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>寫入設定</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QPushButton" name="output_submitted_info_btn">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>匯出繳交資料</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="QPushButton" name="download_hw_btn">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>全部下載</string>
       </property>
      </widget>
     </item>

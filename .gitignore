@@ -2,8 +2,9 @@ __pycache__
 *.ipynb
 .tmp
 download
-*.key
+*.log
 *.rar
 *.zip
+*.key
 *.jpg
 course_data

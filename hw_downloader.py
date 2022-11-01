@@ -7,6 +7,16 @@ from datetime import timedelta
 # MONTH_MAPPING = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep' ,'Oct', 'Nov' ,'Dec']
 # TIME_MATCHING = re.compile(r'\d\d:\d\d ')
 
+def find_final_version(datas : list):
+    """Use timestamp to find the latest version homework
+    """
+    max_timestamp = datas[0]['timestamp']
+    max_idx = 0
+    for i, data in enumerate(datas[1:]):
+        if data['timestamp'] > max_timestamp:
+            max_timestamp = data['timestamp']
+            max_idx = i
+    return datas[max_idx]
 
 class Hw_downloader(object):
     def __init__(self, student_IDS : dict,
@@ -19,7 +29,6 @@ class Hw_downloader(object):
 
         self.ip = "140.116.154.1"
         self.port = 2121
-        self.hw_file = namedtuple('Hw_file', ['timestamp', 'file_name', 'name','version','size'] ) # S_ID = student id
         self.ftp = None
 
         self.student_IDS = student_IDS
@@ -128,7 +137,24 @@ class Hw_downloader(object):
                     student_id = self.student_IDS[course][idx]
                 # Cannot match chinese name
                 else:
-                    error_files.append((file_name,"學號不存在，並且姓名對不回去學號"))
+                    flag = False
+                    courses =  [key for key in self.student_IDS.keys()]
+                    another_course = ""
+                    for c in courses:
+                        if c != course:
+                            for s_id in self.student_IDS[c]:
+                                matcher = re.compile(s_id)
+                                match = matcher.search(file_name)
+                                if match != None:
+                                    another_course = c
+                                    flag = True   
+                                    break
+                        if flag == True:
+                            break
+                    if flag:
+                        error_files.append((file_name,"此學號在{}學生名單中".format(another_course)))
+                    else:
+                        error_files.append((file_name,"學號不存在，並且姓名對不回去學號"))
                     continue
             elif chinese_name == "":
                 idx = self.student_IDS[course].index(student_id)
@@ -140,7 +166,9 @@ class Hw_downloader(object):
                                             'version': version,
                                             'file_size': file_size})
             success_count += 1
-        return good_files, success_count, len(error_files), error_files
+        for key, datas in good_files.items():
+            good_files[key] = find_final_version(datas)
+        return good_files, success_count, error_files
     def download_file(self, path: str, output_path: str):
         self.ftp.encoding = 'big5'
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -149,3 +177,5 @@ class Hw_downloader(object):
         self.ftp.retrbinary(download_cmd, f.write)
         f.close()
         self.ftp.encoding = 'utf-8'
+
+
