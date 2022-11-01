@@ -7,4 +7,6 @@ download
 *.zip
 *.key
 *.jpg
+*.csv
+*.xlsx
 course_data
