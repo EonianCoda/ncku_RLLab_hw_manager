@@ -15,7 +15,7 @@ def find_final_version(datas : list):
     for i, data in enumerate(datas[1:]):
         if data['timestamp'] > max_timestamp:
             max_timestamp = data['timestamp']
-            max_idx = i
+            max_idx = i + 1
     return datas[max_idx]
 
 class Hw_downloader(object):

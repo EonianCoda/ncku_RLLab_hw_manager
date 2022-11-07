@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(848, 1237)
+        Form.resize(1373, 755)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -202,7 +202,7 @@ class Ui_Form(object):
 "}")
         self.login_status_label.setObjectName("login_status_label")
         self.verticalLayoutWidget = QtWidgets.QWidget(Form)
-        self.verticalLayoutWidget.setGeometry(QtCore.QRect(30, 730, 761, 471))
+        self.verticalLayoutWidget.setGeometry(QtCore.QRect(648, 256, 705, 471))
         self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
         self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
@@ -270,7 +270,7 @@ class Ui_Form(object):
         self.select_and_unzip_files_btn.setObjectName("select_and_unzip_files_btn")
         self.verticalLayout_3.addWidget(self.select_and_unzip_files_btn)
         self.verticalLayoutWidget_2 = QtWidgets.QWidget(Form)
-        self.verticalLayoutWidget_2.setGeometry(QtCore.QRect(30, 250, 651, 469))
+        self.verticalLayoutWidget_2.setGeometry(QtCore.QRect(8, 256, 625, 469))
         self.verticalLayoutWidget_2.setObjectName("verticalLayoutWidget_2")
         self.Main_layout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_2)
         self.Main_layout.setContentsMargins(0, 0, 0, 0)
