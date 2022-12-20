@@ -447,7 +447,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.set_delay_time.clicked.connect(self.set_delay_time)
         self.ui.login_and_store_btn.clicked.connect(self.login_and_store)
 
-        self.ui.hw_selecter.currentTextChanged.connect(self.set_search_path)
+        self.ui.hw_selecter.currentTextChanged.connect(self. change_hw_options_for_hw_selecter)
         self.ui.course_selecter.currentTextChanged.connect(self.set_search_path)
 
         self.ui.read_demo_time_file_btn.clicked.connect(self.select_demo_file)
@@ -457,6 +457,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.select_and_unzip_files_btn.clicked.connect(self.select_and_unzip_files)
 
         self.ui.import_files_btn.clicked.connect(self.import_files)
+    def change_hw_options_for_hw_selecter(self, value : str):
+        self.ui.sub_hw_selecter_for_delay_selecter.clear()
+        self.ui.sub_hw_selecter_for_delay_selecter.addItems(self.hw_folders[self.cur_course_name][self.cur_hw])
     def import_files(self):
         filename, filetype = QFileDialog.getOpenFileName(self,
                                                         caption="Open file",
